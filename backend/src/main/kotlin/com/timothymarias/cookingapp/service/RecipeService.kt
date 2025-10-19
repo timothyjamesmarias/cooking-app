@@ -5,7 +5,9 @@ import com.timothymarias.cookingapp.dto.RecipeDto
 import com.timothymarias.cookingapp.dto.RecipeUpdateDto
 import com.timothymarias.cookingapp.mapper.RecipeMapper
 import com.timothymarias.cookingapp.repository.RecipeRepository
+import org.springframework.stereotype.Service
 
+@Service
 class RecipeService(
     private val recipeRepository: RecipeRepository,
     private val recipeMapper: RecipeMapper,

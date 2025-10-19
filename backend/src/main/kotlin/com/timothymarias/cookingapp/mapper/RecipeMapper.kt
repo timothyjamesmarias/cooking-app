@@ -3,7 +3,9 @@ package com.timothymarias.cookingapp.mapper
 import com.timothymarias.cookingapp.dto.RecipeCreationDto
 import com.timothymarias.cookingapp.dto.RecipeDto
 import com.timothymarias.cookingapp.entity.Recipe
+import org.springframework.stereotype.Component
 
+@Component
 class RecipeMapper {
     fun toDto(recipe: Recipe): RecipeDto {
         return RecipeDto(
