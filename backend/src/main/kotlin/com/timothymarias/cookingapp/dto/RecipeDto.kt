@@ -1,5 +1,9 @@
 package com.timothymarias.cookingapp.dto
 
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Size
+
 data class RecipeDto(
     val id: Long?,
     val name: String,

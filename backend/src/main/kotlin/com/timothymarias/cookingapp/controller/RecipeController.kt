@@ -5,6 +5,7 @@ import com.timothymarias.cookingapp.dto.RecipeCreationDto
 import com.timothymarias.cookingapp.dto.RecipeDto
 import com.timothymarias.cookingapp.dto.RecipeUpdateDto
 import com.timothymarias.cookingapp.service.RecipeService
+import jakarta.validation.Valid
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
