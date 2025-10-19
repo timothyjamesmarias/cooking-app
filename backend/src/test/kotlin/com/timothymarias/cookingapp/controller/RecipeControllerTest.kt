@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(RecipeController::class)
+@org.springframework.test.context.ActiveProfiles("test")
 class RecipeControllerTest {
 
     @Autowired
@@ -39,7 +40,7 @@ class RecipeControllerTest {
         )
         given(recipeService.findAll()).willReturn(dtos)
 
-        mockMvc.perform(get("/") )
+        mockMvc.perform(get("/recipes") )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].name").value("Pancakes"))
             .andExpect(jsonPath("$[1].id").value(2))
@@ -50,7 +51,7 @@ class RecipeControllerTest {
         val dto = RecipeDto(5L, "Soup", listOf("Water"))
         given(recipeService.getRecipe(5L)).willReturn(dto)
 
-        mockMvc.perform(get("/5"))
+        mockMvc.perform(get("/recipes/5"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(5))
             .andExpect(jsonPath("$.name").value("Soup"))
@@ -63,7 +64,7 @@ class RecipeControllerTest {
         given(recipeService.create(creation)).willReturn(created)
 
         mockMvc.perform(
-            post("/")
+            post("/recipes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(creation))
         )
@@ -79,7 +80,7 @@ class RecipeControllerTest {
         given(recipeService.update(3L, update)).willReturn(updated)
 
         mockMvc.perform(
-            put("/3")
+            put("/recipes/3")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(update))
         )
@@ -90,7 +91,7 @@ class RecipeControllerTest {
     @Test
     fun `DELETE recipe returns 200`() {
         mockMvc.perform(
-            delete("/3")
+            delete("/recipes/3")
         ).andExpect(status().isOk)
     }
 }
