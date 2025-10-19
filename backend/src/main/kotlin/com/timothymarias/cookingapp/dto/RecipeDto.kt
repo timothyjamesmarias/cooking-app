@@ -12,7 +12,7 @@ data class RecipeDto(
 
 data class RecipeCreationDto(
     @field:NotBlank(message = "Recipe name is required")
-    @field:Size(min = 3, max = 100, message = "Recipe name must be between 3 and 100 characters")
+    @field:Size(min = 1, max = 100, message = "Recipe name must be between 1 and 100 characters")
     val name: String,
 
     @field:NotEmpty(message = "At least one ingredient is required")
@@ -22,7 +22,7 @@ data class RecipeCreationDto(
 
 data class RecipeUpdateDto(
     @field:NotBlank(message = "Recipe name is required")
-    @field:Size(min = 3, max = 100, message = "Recipe name must be between 3 and 100 characters")
+    @field:Size(min = 1, max = 100, message = "Recipe name must be between 1 and 100 characters")
     val name: String,
 
     @field:NotEmpty(message = "At least one ingredient is required")

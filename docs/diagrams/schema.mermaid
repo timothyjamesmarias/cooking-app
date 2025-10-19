@@ -1,0 +1,39 @@
+erDiagram
+    RECIPES {
+        BIGINT id PK "auto-increment"
+        VARCHAR name "NOT NULL"
+    }
+
+    INGREDIENTS {
+        BIGINT id PK "auto-increment"
+        VARCHAR name "NOT NULL"
+    }
+
+    UNITS {
+        BIGINT id PK "auto-increment"
+        ENUM measurement_type "WEIGHT|VOLUME|COUNT"
+        VARCHAR symbol
+        DECIMAL base_conversion_factor
+    }
+
+    QUANTITIES {
+        BIGINT id PK "auto-increment"
+        DECIMAL value "NOT NULL"
+        BIGINT unit_id FK "REFERENCES UNITS(id)"
+    }
+
+    RECIPE_INGREDIENTS {
+        BIGINT id PK "auto-increment"
+        BIGINT recipe_id FK "REFERENCES RECIPES(id)"
+        BIGINT ingredient_id FK "REFERENCES INGREDIENTS(id)"
+        BIGINT quantity_id FK "REFERENCES QUANTITIES(id)"
+    }
+
+    RECIPES ||--o{ RECIPE_INGREDIENTS : contains
+    INGREDIENTS ||--o{ RECIPE_INGREDIENTS : includes
+    UNITS ||--o{ QUANTITIES : defines
+    QUANTITIES ||--|| RECIPE_INGREDIENTS : measures
+
+    %% Notes:
+    %% - Each recipe ingredient has exactly one quantity.
+    %% - Each quantity has exactly one unit.
