@@ -7,6 +7,7 @@ import com.timothymarias.cookingapp.dto.RecipeUpdateDto
 import com.timothymarias.cookingapp.service.RecipeService
 import jakarta.validation.Valid
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -43,5 +44,10 @@ class RecipeController(
         @Valid @RequestBody recipeDto: RecipeUpdateDto
     ): RecipeDto {
         return recipeService.update(id, recipeDto)
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteRecipe(@PathVariable id: Long) {
+        return recipeService.delete(id)
     }
 }

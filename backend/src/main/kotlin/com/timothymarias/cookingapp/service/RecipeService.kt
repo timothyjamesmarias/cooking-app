@@ -34,4 +34,9 @@ class RecipeService(
         recipeRepository.save(recipeRecord)
         return recipeMapper.toDto(recipeRecord)
     }
+
+    fun delete(id: Long) {
+        val recipeRecord = recipeRepository.findById(id).orElseThrow()
+        recipeRepository.delete(recipeRecord)
+    }
 }

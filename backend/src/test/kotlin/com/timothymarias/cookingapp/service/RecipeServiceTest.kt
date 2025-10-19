@@ -89,4 +89,14 @@ class RecipeServiceTest {
         assertEquals("New", dto.name)
         Mockito.verify(repository).save(existing)
     }
+
+    @Test
+    fun `delete finds and deletes recipe`() {
+        val existing = Recipe(id = 12L, name = "X")
+        whenever(repository.findById(12L)).thenReturn(Optional.of(existing))
+
+        service.delete(12L)
+
+        Mockito.verify(repository).delete(existing)
+    }
 }
