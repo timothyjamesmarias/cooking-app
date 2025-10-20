@@ -1,6 +1,6 @@
 package com.timothymarias.cookingapp.controller
 
-import com.timothymarias.cookingapp.BaseControllerV1
+import com.timothymarias.cookingapp.common.ApiConstants
 import com.timothymarias.cookingapp.dto.RecipeCreationDto
 import com.timothymarias.cookingapp.dto.RecipeDto
 import com.timothymarias.cookingapp.dto.RecipeUpdateDto
@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/recipes")
+@RequestMapping("${ApiConstants.API_V1_BASE_PATH}/recipes")
 @Validated
 class RecipeController(
     private val recipeService: RecipeService
-): BaseControllerV1() {
+) {
 
-    @RequestMapping("")
+    @GetMapping("")
     fun getAllRecipes() : List<RecipeDto> {
         return recipeService.findAll()
     }
