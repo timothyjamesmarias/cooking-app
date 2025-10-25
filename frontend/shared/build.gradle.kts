@@ -38,6 +38,12 @@ kotlin {
                 implementation("app.cash.sqldelight:coroutines-extensions:2.0.2")
             }
         }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         
         val androidMain by getting {
             dependencies {
@@ -59,8 +65,15 @@ kotlin {
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
             }
         }
-        
 
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+            }
+        }
+        
         val iosX64Main by getting {
             dependencies {
                 implementation("app.cash.sqldelight:native-driver:2.0.2")
