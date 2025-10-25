@@ -1,0 +1,39 @@
+package com.timothymarias.cookingapp.shared.tests.recipe
+
+import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
+import com.timothymarias.cookingapp.shared.domain.model.Recipe
+import kotlin.test.Ignore
+import kotlin.test.Test
+
+/**
+ * Contract tests for RecipeRepository CRUD behavior, expressed as skeletons.
+ * These are intentionally @Ignore-d until the CRUD methods are implemented.
+ * Implementations (e.g., DbRecipeRepository) should satisfy these behaviors.
+ */
+class RecipeRepositoryContractTest {
+
+    private lateinit var repo: RecipeRepository // Will be provided by platform-specific test setup later
+
+    @Test
+    @Ignore
+    fun create_then_watchById_emits_new_recipe() {
+        // Given
+        val recipe = Recipe(localId = "new-id", name = "Ratatouille")
+        // When
+        // runBlocking { repo.create(recipe) }
+        // Then
+        // runTest { repo.watchById(recipe.localId).test { assertEquals("Ratatouille", awaitItem()?.name) } }
+    }
+
+    @Test
+    @Ignore
+    fun updateName_reflects_in_watchers() {
+        // Create, then update name, observers should see the change
+    }
+
+    @Test
+    @Ignore
+    fun delete_removes_from_watchAll_and_watchById() {
+        // After delete, watchById should emit null and watchAll should not contain the recipe
+    }
+}

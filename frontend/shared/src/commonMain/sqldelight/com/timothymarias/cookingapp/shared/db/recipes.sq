@@ -8,3 +8,24 @@ CREATE TABLE recipes (
 selectAll:
 SELECT local_id, name FROM recipes
 ORDER BY name;
+
+-- Insert a recipe
+insertRecipe:
+INSERT INTO recipes(local_id, name)
+VALUES (?, ?);
+
+-- Select by id
+selectById:
+SELECT local_id, name FROM recipes
+WHERE local_id = ?;
+
+-- Update name by id
+updateRecipeName:
+UPDATE recipes
+SET name = ?
+WHERE local_id = ?;
+
+-- Delete by id
+deleteById:
+DELETE FROM recipes
+WHERE local_id = ?;

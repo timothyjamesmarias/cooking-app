@@ -42,6 +42,8 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+                implementation("app.cash.turbine:turbine:1.0.0")
             }
         }
         
@@ -71,6 +73,7 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+                implementation("app.cash.turbine:turbine:1.0.0")
             }
         }
         

@@ -2,6 +2,7 @@ package com.timothymarias.cookingapp.shared.data.repository.recipe
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.timothymarias.cookingapp.shared.db.CookingDatabase
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import kotlinx.coroutines.CoroutineDispatcher
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
- * Local-first repository backed by SQLDelight. Read-only for now (no CRUD).
+ * Local-first repository backed by SQLDelight. Currently read-focused; write methods are TODO for TDD.
  */
 class DbRecipeRepository(
     private val db: CookingDatabase,
@@ -21,4 +22,24 @@ class DbRecipeRepository(
             .asFlow()
             .mapToList(dispatcher)
             .map { rows -> rows.map { Recipe(localId = it.local_id, name = it.name) } }
+
+    override fun watchById(localId: String): Flow<Recipe?> =
+        db.recipesQueries.selectById(localId)
+            .asFlow()
+            .mapToOneOrNull(dispatcher)
+            .map { row -> row?.let { Recipe(localId = it.local_id, name = it.name) } }
+
+    override suspend fun create(recipe: Recipe): Recipe {
+        db.recipesQueries.insertRecipe(null, recipe.name)
+    }
+
+    override suspend fun updateName(localId: String, name: String): Recipe {
+        // Intentionally not implemented yet to support TDD
+        throw NotImplementedError("DbRecipeRepository.updateName is not implemented yet")
+    }
+
+    override suspend fun delete(localId: String) {
+        // Intentionally not implemented yet to support TDD
+        throw NotImplementedError("DbRecipeRepository.delete is not implemented yet")
+    }
 }
