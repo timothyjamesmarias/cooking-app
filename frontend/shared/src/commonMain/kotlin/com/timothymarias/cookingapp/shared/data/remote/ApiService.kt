@@ -1,13 +1,18 @@
-package com.timothymarias.cookingapp.shared.api
+package com.timothymarias.cookingapp.shared.data.remote
 
 import com.timothymarias.cookingapp.shared.API_BASEURL
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 class ApiService {
@@ -19,32 +24,28 @@ class ApiService {
                 coerceInputValues = true
             })
         }
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.INFO
-        }
     }
 
     suspend inline fun <reified T> get(endpoint: String): T {
-        return client.get("$API_BASEURL$endpoint").body()
+        return client.get("${API_BASEURL}$endpoint").body()
     }
 
     suspend inline fun <reified T> post(endpoint: String, body: Any): T {
-        return client.post("$API_BASEURL$endpoint") {
+        return client.post("${API_BASEURL}$endpoint") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
     }
 
     suspend inline fun <reified T> put(endpoint: String, body: Any): T {
-        return client.put("$API_BASEURL$endpoint") {
+        return client.put("${API_BASEURL}$endpoint") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
     }
 
     suspend fun delete(endpoint: String) {
-        client.delete("$API_BASEURL$endpoint")
+        client.delete("${API_BASEURL}$endpoint")
     }
 
     fun close() {

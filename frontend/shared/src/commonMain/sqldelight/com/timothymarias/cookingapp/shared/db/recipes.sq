@@ -1,0 +1,10 @@
+-- Recipes table for local-first storage
+CREATE TABLE recipes (
+  local_id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+-- Query to select all recipes (ordered by name for stable UI)
+selectAll:
+SELECT local_id, name FROM recipes
+ORDER BY name;
