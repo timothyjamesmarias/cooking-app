@@ -6,7 +6,7 @@ import com.timothymarias.cookingapp.shared.db.CookingDatabase
 
 actual class DatabaseDriverFactory actual constructor(private val config: DriverConfig) {
     actual fun createDriver(): SqlDriver {
-        val url = "jdbc:sqlite:${'$'}{config.name}"
+        val url = "jdbc:sqlite:${config.name}"
         val driver = JdbcSqliteDriver(url)
         // Ensure schema exists for desktop
         CookingDatabase.Schema.create(driver)
