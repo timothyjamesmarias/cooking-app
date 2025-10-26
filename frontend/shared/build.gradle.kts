@@ -32,6 +32,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
                 implementation("io.ktor:ktor-client-logging:2.3.7")
+                implementation("app.softwork:kotlinx-uuid-core:0.0.22")
 
                 // SQLDelight common runtime + coroutines extensions
                 implementation("app.cash.sqldelight:runtime:2.0.2")

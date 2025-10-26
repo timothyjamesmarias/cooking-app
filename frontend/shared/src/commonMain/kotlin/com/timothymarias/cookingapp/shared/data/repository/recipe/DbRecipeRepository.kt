@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.uuid.UUID
+import kotlinx.uuid.generateUUID
 
 /**
  * Local-first repository backed by SQLDelight. Currently read-focused; write methods are TODO for TDD.
@@ -30,16 +32,17 @@ class DbRecipeRepository(
             .map { row -> row?.let { Recipe(localId = it.local_id, name = it.name) } }
 
     override suspend fun create(recipe: Recipe): Recipe {
-        db.recipesQueries.insertRecipe(null, recipe.name)
+        val newLocalId = recipe.localId.takeIf { it.isNotBlank() } ?: UUID.generateUUID().toString()
+        db.recipesQueries.insertRecipe(newLocalId, recipe.name)
+        return Recipe(localId = newLocalId, name = recipe.name)
     }
 
     override suspend fun updateName(localId: String, name: String): Recipe {
-        // Intentionally not implemented yet to support TDD
-        throw NotImplementedError("DbRecipeRepository.updateName is not implemented yet")
+        db.recipesQueries.updateRecipeName(name = name, local_id = localId)
+        return Recipe(localId = localId, name = name)
     }
 
     override suspend fun delete(localId: String) {
-        // Intentionally not implemented yet to support TDD
-        throw NotImplementedError("DbRecipeRepository.delete is not implemented yet")
+        db.recipesQueries.deleteById(local_id = localId)
     }
 }
