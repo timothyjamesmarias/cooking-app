@@ -152,6 +152,7 @@ Stretch goals:
 
 ## 6. Future Extensions
 
+- Voice command interface
 - Nutritional database integration
 - Smart kitchen device support (IoT timers, scales)
 - Family sharing / multi-user sync

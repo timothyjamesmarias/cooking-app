@@ -1,0 +1,50 @@
+-- Query to select all recipes (ordered by name for stable UI)
+selectAll:
+SELECT local_id, name FROM recipes
+ORDER BY name;
+
+-- Insert a recipe
+insertRecipe:
+INSERT INTO recipes(local_id, name)
+VALUES (?, ?);
+
+-- Select by id
+selectById:
+SELECT local_id, name FROM recipes
+WHERE local_id = ?;
+
+-- Update name by id
+updateRecipeName:
+UPDATE recipes
+SET name = ?
+WHERE local_id = ?;
+
+-- Delete by id
+deleteById:
+DELETE FROM recipes
+WHERE local_id = ?;
+
+-- Select an ingredient from a recipe
+selectIngredients:
+SELECT ingredients.local_id, ingredients.name
+FROM ingredients
+INNER JOIN recipe_ingredients
+ON ingredients.local_id = recipe_ingredients.ingredient_id
+AND recipe_ingredients.recipe_id = ?;
+
+-- Assign an ingredient to a recipe
+assignIngredient:
+INSERT INTO recipe_ingredients(recipe_id, ingredient_id)
+VALUES (?, ?);
+
+-- Remove an ingredient from a recipe
+removeIngredient:
+DELETE FROM recipe_ingredients
+WHERE recipe_id = ? AND ingredient_id = ?;
+
+-- Check if ingredient is assigned to recipe
+isIngredientAssigned:
+SELECT EXISTS (
+    SELECT 1 FROM recipe_ingredients
+    WHERE recipe_id = ? AND ingredient_id = ?
+);

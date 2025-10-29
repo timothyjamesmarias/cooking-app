@@ -1,0 +1,25 @@
+-- Query to select all ingredients (ordered by name for stable UI)
+selectAll:
+SELECT local_id, name FROM ingredients
+ORDER BY name;
+
+-- Insert a ingredient
+insertIngredient:
+INSERT INTO ingredients(local_id, name)
+VALUES (?, ?);
+
+-- Select by id
+selectById:
+SELECT local_id, name FROM ingredients
+WHERE local_id = ?;
+
+-- Update name by id
+updateIngredientName:
+UPDATE ingredients
+SET name = ?
+WHERE local_id = ?;
+
+-- Delete by id
+deleteById:
+DELETE FROM ingredients
+WHERE local_id = ?;
