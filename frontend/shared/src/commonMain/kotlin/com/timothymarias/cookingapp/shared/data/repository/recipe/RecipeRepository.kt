@@ -1,5 +1,6 @@
 package com.timothymarias.cookingapp.shared.data.repository.recipe
 
+import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import kotlinx.coroutines.flow.Flow
 
@@ -16,4 +17,8 @@ interface RecipeRepository {
     suspend fun create(recipe: Recipe): Recipe
     suspend fun updateName(localId: String, name: String): Recipe
     suspend fun delete(localId: String)
+    suspend fun getIngredients(localId: String): List<Ingredient>
+    suspend fun assignIngredient(recipeId: String, ingredientId: String)
+    suspend fun removeIngredient(recipeId: String, ingredientId: String)
+    suspend fun isIngredientAssigned(recipeId: String, ingredientId: String): Boolean
 }

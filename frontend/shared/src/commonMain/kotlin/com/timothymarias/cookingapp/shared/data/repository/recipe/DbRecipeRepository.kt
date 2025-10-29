@@ -4,11 +4,13 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.timothymarias.cookingapp.shared.db.CookingDatabase
+import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.BooleanArraySerializer
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
@@ -44,5 +46,24 @@ class DbRecipeRepository(
 
     override suspend fun delete(localId: String) {
         db.recipesQueries.deleteById(local_id = localId)
+    }
+
+    override suspend fun getIngredients(localId: String): List<Ingredient> {
+        return db.recipesQueries.selectIngredients(localId)
+            .executeAsList()
+            .map { Ingredient(localId = it.local_id, name = it.name) }
+    }
+
+    override suspend fun assignIngredient(recipeId: String, ingredientId: String) {
+        db.recipesQueries.assignIngredient(recipeId, ingredientId)
+    }
+
+    override suspend fun removeIngredient(recipeId: String, ingredientId: String) {
+        db.recipesQueries.removeIngredient(recipeId, ingredientId)
+    }
+
+    override suspend fun isIngredientAssigned(recipeId: String, ingredientId: String): Boolean {
+        return db.recipesQueries.isIngredientAssigned(recipeId, ingredientId)
+            .executeAsOne()
     }
 }

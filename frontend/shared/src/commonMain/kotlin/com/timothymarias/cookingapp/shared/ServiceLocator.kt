@@ -4,6 +4,8 @@ import app.cash.sqldelight.db.SqlDriver
 import com.timothymarias.cookingapp.shared.data.local.DatabaseDriverFactory
 import com.timothymarias.cookingapp.shared.data.local.DriverConfig
 import com.timothymarias.cookingapp.shared.data.local.createDatabase
+import com.timothymarias.cookingapp.shared.data.repository.ingredient.DbIngredientRepository
+import com.timothymarias.cookingapp.shared.data.repository.ingredient.IngredientRepository
 import com.timothymarias.cookingapp.shared.data.repository.recipe.DbRecipeRepository
 import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
 import com.timothymarias.cookingapp.shared.db.CookingDatabase
@@ -21,6 +23,8 @@ object ServiceLocator {
     // Public repositories exposed to UI/business layers
     lateinit var recipeRepository: RecipeRepository
         private set
+    lateinit var ingredientRepository: IngredientRepository
+        private set
 
     /**
      * Initialize the SQLDelight database and repositories.
@@ -34,6 +38,7 @@ object ServiceLocator {
 
         // Wire repositories
         recipeRepository = DbRecipeRepository(database)
+        ingredientRepository = DbIngredientRepository(database)
 
         initialized = true
     }

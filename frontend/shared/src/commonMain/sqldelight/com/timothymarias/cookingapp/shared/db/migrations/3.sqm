@@ -1,0 +1,8 @@
+CREATE TABLE recipe_ingredients (
+  recipe_id TEXT NOT NULL,
+  ingredient_id TEXT NOT NULL,
+  PRIMARY KEY (recipe_id, ingredient_id)
+);
+
+CREATE INDEX idx_ingr_recipes_recipe ON recipe_ingredients(recipe_id);
+CREATE INDEX idx_ingr_recipes_ingredient ON recipe_ingredients(ingredient_id);

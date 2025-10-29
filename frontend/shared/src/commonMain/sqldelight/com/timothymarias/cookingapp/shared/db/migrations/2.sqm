@@ -1,0 +1,6 @@
+-- ingredients table for local-first storage
+CREATE TABLE ingredients (
+  local_id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+

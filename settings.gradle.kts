@@ -6,7 +6,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "cooking-app"
+rootProject.name = "cooking_app"
 
 include(":backend")
 include(":frontend:shared")
