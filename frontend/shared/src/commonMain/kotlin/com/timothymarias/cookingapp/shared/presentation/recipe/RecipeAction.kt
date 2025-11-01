@@ -1,9 +1,11 @@
 package com.timothymarias.cookingapp.shared.presentation.recipe
 
-import com.timothymarias.cookingapp.shared.domain.model.Recipe
-
 sealed interface RecipeAction {
     data object Load : RecipeAction
-    data class Created(val recipe: Recipe) : RecipeAction
-//    data class Failed(val error: UiError) : RecipeAction
+    data class Create(val name: String) : RecipeAction
+    data class Rename(val id: String, val name: String): RecipeAction
+    data class Delete(val id: String): RecipeAction
+    data class QueryChanged(val name: String): RecipeAction
+    data class EditOpen(val id: String): RecipeAction
+    data object EditClose : RecipeAction
 }
