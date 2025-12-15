@@ -41,3 +41,5 @@ out/
 
 .env
 *.db
+.tags
+.kt-project-cache.json

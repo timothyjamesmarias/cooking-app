@@ -50,7 +50,7 @@ class RecipeStore(
                 s.copy(editingId = action.id, editName = current?.name ?: "")
             }
             RecipeAction.EditClose -> _state.update { it.copy(editingId = null, editName = "") }
-            is RecipeAction.QueryChanged -> _state.update { it.copy(query = action.value) }
+            is RecipeAction.QueryChanged -> _state.update { it.copy(query = action.name) }
             RecipeAction.Load -> { /* already handled by init collector */ }
         }
     }
