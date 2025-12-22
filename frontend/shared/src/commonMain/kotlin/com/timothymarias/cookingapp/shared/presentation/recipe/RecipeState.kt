@@ -1,6 +1,7 @@
 package com.timothymarias.cookingapp.shared.presentation.recipe
 
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
+import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 
 data class RecipeState(
     val items: List<Recipe> = emptyList(),
@@ -11,4 +12,6 @@ data class RecipeState(
     // UI flags to survive recompositions/navigation
     val editingId: String? = null,
     val editName: String = "",
+    val managingIngredientsId: String? = null,
+    val assignedIngredientIds: Set<String> = emptySet(),
 )

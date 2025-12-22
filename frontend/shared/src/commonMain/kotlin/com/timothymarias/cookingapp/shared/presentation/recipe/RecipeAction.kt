@@ -8,4 +8,7 @@ sealed interface RecipeAction {
     data class QueryChanged(val name: String): RecipeAction
     data class EditOpen(val id: String): RecipeAction
     data object EditClose : RecipeAction
+    data class AssignIngredient(val recipeId: String, val ingredientId: String): RecipeAction
+    data class RemoveIngredient(val recipeId: String, val ingredientId: String): RecipeAction
+    data class ManageIngredientsOpen(val id: String): RecipeAction
 }

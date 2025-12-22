@@ -1,24 +1,21 @@
-package com.timothymarias.cookingapp.shared.presentation.recipe.list
+package com.timothymarias.cookingapp.shared.presentation.ingredient.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.timothymarias.cookingapp.shared.domain.model.Recipe
+import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 
 @Composable
-fun RecipeRow(
-    recipe: Recipe,
+fun IngredientRow(
+    ingredient: Ingredient,
     onClick: () -> Unit,
     onDelete: () -> Unit,
-    onManageIngredients: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -31,17 +28,12 @@ fun RecipeRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = recipe.name,
+                text = ingredient.name,
                 style = MaterialTheme.typography.titleLarge
             )
         }
-        Row {
-            IconButton(onClick = onManageIngredients) {
-                Icon(Icons.Default.Settings, contentDescription = "Manage Ingredients")
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Recipe")
-            }
+        IconButton(onClick = onDelete) {
+            Icon(Icons.Default.Delete, contentDescription = "Delete Ingredient")
         }
     }
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

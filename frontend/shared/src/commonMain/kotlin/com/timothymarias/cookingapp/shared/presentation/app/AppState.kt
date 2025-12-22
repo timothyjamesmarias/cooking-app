@@ -1,4 +1,10 @@
 package com.timothymarias.cookingapp.shared.presentation.app
 
-class AppState {
+enum class Screen {
+    RecipeList,
+    IngredientList
 }
+
+data class AppState(
+    val currentScreen: Screen = Screen.RecipeList
+)

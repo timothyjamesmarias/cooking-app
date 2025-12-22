@@ -49,9 +49,25 @@ class RecipeStore(
                 val current = s.items.firstOrNull { it.localId == action.id }
                 s.copy(editingId = action.id, editName = current?.name ?: "")
             }
-            RecipeAction.EditClose -> _state.update { it.copy(editingId = null, editName = "") }
+            RecipeAction.EditClose -> _state.update { it.copy(editingId = null, editName = "", managingIngredientsId = null) }
             is RecipeAction.QueryChanged -> _state.update { it.copy(query = action.name) }
             RecipeAction.Load -> { /* already handled by init collector */ }
+            is RecipeAction.AssignIngredient -> scope.launch(dispatchers.IO) {
+                runCatching { repo.assignIngredient(action.recipeId, action.ingredientId) }
+                    .onSuccess {
+                        _state.update { s -> s.copy(assignedIngredientIds = s.assignedIngredientIds + action.ingredientId) }
+                    }
+            }
+            is RecipeAction.RemoveIngredient -> scope.launch(dispatchers.IO) {
+                runCatching { repo.removeIngredient(action.recipeId, action.ingredientId) }
+                    .onSuccess {
+                        _state.update { s -> s.copy(assignedIngredientIds = s.assignedIngredientIds - action.ingredientId) }
+                    }
+            }
+            is RecipeAction.ManageIngredientsOpen -> scope.launch(dispatchers.IO) {
+                val assigned = repo.getIngredients(action.id)
+                _state.update { it.copy(managingIngredientsId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet()) }
+            }
         }
     }
 
