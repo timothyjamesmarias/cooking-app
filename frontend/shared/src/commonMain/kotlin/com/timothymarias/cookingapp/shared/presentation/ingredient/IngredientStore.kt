@@ -2,6 +2,7 @@ package com.timothymarias.cookingapp.shared.presentation.ingredient
 
 import com.timothymarias.cookingapp.shared.data.repository.ingredient.IngredientRepository
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -15,14 +16,14 @@ import kotlinx.coroutines.launch
 
 class IngredientStore(
     private val repo: IngredientRepository,
-    private val dispatchers: Dispatchers = Dispatchers,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state = MutableStateFlow(IngredientState(isLoading = true))
     val state: StateFlow<IngredientState> = _state.asStateFlow()
 
     init {
-        scope.launch(dispatchers.IO) {
+        scope.launch(ioDispatcher) {
             repo.watchAll().collect { list ->
                 _state.update { it.copy(items = list, isLoading = false) }
             }
@@ -31,17 +32,17 @@ class IngredientStore(
 
     fun dispatch(action: IngredientAction) {
         when (action) {
-            is IngredientAction.Create -> scope.launch(dispatchers.IO) {
+            is IngredientAction.Create -> scope.launch(ioDispatcher) {
                 _state.update { it.copy(isSaving = true, error = null) }
                 runCatching { repo.create(Ingredient(localId = "", name = action.name.trim())) }
                     .onFailure { e -> _state.update { it.copy(isSaving = false, error = e.message) } }
                     .onSuccess { _state.update { it.copy(isSaving = false) } }
             }
-            is IngredientAction.Rename -> scope.launch(dispatchers.IO) {
+            is IngredientAction.Rename -> scope.launch(ioDispatcher) {
                 runCatching { repo.updateName(action.id, action.name.trim()) }
                     .onFailure { e -> _state.update { it.copy(error = e.message) } }
             }
-            is IngredientAction.Delete -> scope.launch(dispatchers.IO) {
+            is IngredientAction.Delete -> scope.launch(ioDispatcher) {
                 runCatching { repo.delete(action.id) }
                     .onFailure { e -> _state.update { it.copy(error = e.message) } }
             }
