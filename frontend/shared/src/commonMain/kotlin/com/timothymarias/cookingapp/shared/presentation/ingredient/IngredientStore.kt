@@ -8,12 +8,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class IngredientStore(
     private val repo: IngredientRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -24,9 +28,19 @@ class IngredientStore(
 
     init {
         scope.launch(ioDispatcher) {
-            repo.watchAll().collect { list ->
-                _state.update { it.copy(items = list, isLoading = false) }
-            }
+            // Switch between watchAll and watchByQuery based on query state
+            _state
+                .map { it.query }
+                .flatMapLatest { query ->
+                    if (query.isBlank()) {
+                        repo.watchAll()
+                    } else {
+                        repo.watchByQuery(query)
+                    }
+                }
+                .collect { list ->
+                    _state.update { it.copy(items = list, isLoading = false) }
+                }
         }
     }
 

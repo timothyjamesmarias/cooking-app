@@ -16,7 +16,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientAction
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
+import com.timothymarias.cookingapp.shared.presentation.ingredient.components.IngredientSearchField
 import com.timothymarias.cookingapp.shared.presentation.ingredient.list.IngredientListScreen
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
@@ -59,12 +61,26 @@ fun AppRoot(
 
         recipeState.managingIngredientsId?.let { recipeId ->
             AlertDialog(
-                onDismissRequest = { recipeStore.dispatch(RecipeAction.EditClose) },
+                onDismissRequest = {
+                    ingredientStore.dispatch(IngredientAction.QueryChanged(""))
+                    recipeStore.dispatch(RecipeAction.EditClose)
+                },
                 title = { Text("Assign Ingredients") },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth()) {
+                        // Search field
+                        IngredientSearchField(
+                            query = ingredientState.query,
+                            onQueryChange = { ingredientStore.dispatch(IngredientAction.QueryChanged(it)) }
+                        )
+
                         if (ingredientState.items.isEmpty()) {
-                            Text("No ingredients. Create some first.")
+                            val message = if (ingredientState.query.isNotEmpty()) {
+                                "No ingredients found for \"${ingredientState.query}\""
+                            } else {
+                                "No ingredients. Create some first."
+                            }
+                            Text(message)
                         } else {
                             ingredientState.items.forEach { ing ->
                                 Row(
@@ -91,7 +107,10 @@ fun AppRoot(
                     }
                 },
                 confirmButton = {
-                    Button(onClick = { recipeStore.dispatch(RecipeAction.EditClose) }) { Text("Done") }
+                    Button(onClick = {
+                        ingredientStore.dispatch(IngredientAction.QueryChanged(""))
+                        recipeStore.dispatch(RecipeAction.EditClose)
+                    }) { Text("Done") }
                 }
             )
         }

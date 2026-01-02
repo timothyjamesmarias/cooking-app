@@ -11,6 +11,7 @@ interface IngredientRepository {
     // Read
     fun watchAll(): Flow<List<Ingredient>>
     fun watchById(localId: String): Flow<Ingredient?>
+    fun watchByQuery(query: String): Flow<List<Ingredient>>
 
     // Write (skeleton, to be implemented in TDD)
     suspend fun create(ingredient: Ingredient): Ingredient
