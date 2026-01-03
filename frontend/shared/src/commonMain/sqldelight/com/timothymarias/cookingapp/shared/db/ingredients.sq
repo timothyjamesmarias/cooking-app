@@ -23,3 +23,9 @@ WHERE local_id = ?;
 deleteById:
 DELETE FROM ingredients
 WHERE local_id = ?;
+
+-- Search by name (case-insensitive LIKE query)
+searchByName:
+SELECT local_id, name FROM ingredients
+WHERE LOWER(name) LIKE LOWER('%' || ? || '%')
+ORDER BY name;

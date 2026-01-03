@@ -1,25 +1,26 @@
 package com.timothymarias.cookingapp.shared.presentation.app
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientAction
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.list.IngredientListScreen
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
+import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
 import com.timothymarias.cookingapp.shared.presentation.recipe.list.RecipeListScreen
 
 @Composable
@@ -58,40 +59,19 @@ fun AppRoot(
         }
 
         recipeState.managingIngredientsId?.let { recipeId ->
-            AlertDialog(
-                onDismissRequest = { recipeStore.dispatch(RecipeAction.EditClose) },
-                title = { Text("Assign Ingredients") },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        if (ingredientState.items.isEmpty()) {
-                            Text("No ingredients. Create some first.")
-                        } else {
-                            ingredientState.items.forEach { ing ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(ing.name)
-                                    Checkbox(
-                                        checked = recipeState.assignedIngredientIds.contains(ing.localId),
-                                        onCheckedChange = { checked ->
-                                            if (checked) {
-                                                recipeStore.dispatch(RecipeAction.AssignIngredient(recipeId, ing.localId))
-                                            } else {
-                                                recipeStore.dispatch(RecipeAction.RemoveIngredient(recipeId, ing.localId))
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
+            AssignIngredientsDialog(
+                recipeId = recipeId,
+                ingredientState = ingredientState,
+                recipeState = recipeState,
+                onIngredientAction = { action ->
+                    ingredientStore.dispatch(action)
                 },
-                confirmButton = {
-                    Button(onClick = { recipeStore.dispatch(RecipeAction.EditClose) }) { Text("Done") }
+                onRecipeAction = { action ->
+                    recipeStore.dispatch(action)
+                },
+                onDismiss = {
+                    ingredientStore.dispatch(IngredientAction.QueryChanged(""))
+                    recipeStore.dispatch(RecipeAction.EditClose)
                 }
             )
         }
