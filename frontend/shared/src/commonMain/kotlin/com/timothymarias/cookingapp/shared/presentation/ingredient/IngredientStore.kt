@@ -9,17 +9,17 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class IngredientStore(
     private val repo: IngredientRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -33,7 +33,16 @@ class IngredientStore(
             // Switch between watchAll and watchByQuery based on query state
             _state
                 .map { it.query }
-                .debounce(300) // Wait 300ms after user stops typing
+                .transformLatest { query ->
+                    // Only debounce non-blank queries (actual searches)
+                    // Blank queries (initial load, clear search) emit immediately
+                    if (query.isBlank()) {
+                        emit(query)
+                    } else {
+                        delay(300) // Debounce search queries
+                        emit(query)
+                    }
+                }
                 .flatMapLatest { query ->
                     if (query.isBlank()) {
                         repo.watchAll()
