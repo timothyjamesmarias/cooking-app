@@ -46,11 +46,9 @@ class RecipeStore(
                 runCatching { repo.delete(action.id) }
                     .onFailure { e -> _state.update { it.copy(error = e.message) } }
             }
-            is RecipeAction.EditOpen -> _state.update { s ->
-                val current = s.items.firstOrNull { it.localId == action.id }
-                s.copy(editingId = action.id, editName = current?.name ?: "")
-            }
-            RecipeAction.EditClose -> _state.update { it.copy(editingId = null, editName = "", managingIngredientsId = null) }
+            RecipeAction.EditClose -> _state.update { it.copy(managingIngredientsId = null) }
+            RecipeAction.EnterEditMode -> _state.update { it.copy(isEditMode = true) }
+            RecipeAction.ExitEditMode -> _state.update { it.copy(isEditMode = false) }
             is RecipeAction.QueryChanged -> _state.update { it.copy(query = action.name) }
             RecipeAction.Load -> { /* already handled by init collector */ }
             is RecipeAction.AssignIngredient -> scope.launch(ioDispatcher) {
@@ -69,6 +67,15 @@ class RecipeStore(
                 val assigned = repo.getIngredients(action.id)
                 _state.update { it.copy(managingIngredientsId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet()) }
             }
+            is RecipeAction.ViewRecipeDetail -> scope.launch(ioDispatcher) {
+                val assigned = repo.getIngredients(action.id)
+                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet(), isEditMode = false) }
+            }
+            is RecipeAction.ViewRecipeDetailInEditMode -> scope.launch(ioDispatcher) {
+                val assigned = repo.getIngredients(action.id)
+                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet(), isEditMode = true) }
+            }
+            RecipeAction.CloseRecipeDetail -> _state.update { it.copy(selectedRecipeId = null, assignedIngredientIds = emptySet(), isEditMode = false) }
         }
     }
 

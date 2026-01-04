@@ -1,0 +1,53 @@
+%% RECIPE MANAGEMENT FLOW
+%% Last Updated: 2026-01-03
+%% Shows complete user journey for creating, viewing, editing, and deleting recipes
+
+flowchart TD
+    Start([User Opens App]) --> RecipeList[Recipe List Screen]
+
+    %% Create Recipe Flow
+    RecipeList -->|Click FAB| CreateDialog[Create Recipe Dialog]
+    CreateDialog -->|Enter Name & Click Create| CreateAction[dispatch: Create]
+    CreateAction --> SaveRecipe[(Save to Database)]
+    SaveRecipe --> RecipeList
+    CreateDialog -->|Click Cancel| RecipeList
+
+    %% View Recipe Flow
+    RecipeList -->|Click Recipe Name| ViewAction[dispatch: ViewRecipeDetail]
+    ViewAction --> LoadIngredients[(Load Recipe Ingredients)]
+    LoadIngredients --> DetailView[Recipe Detail Screen<br/>VIEW MODE]
+
+    %% Edit Recipe Flow
+    RecipeList -->|Click Edit Icon| EditAction[dispatch: ViewRecipeDetailInEditMode]
+    EditAction --> LoadIngredients2[(Load Recipe Ingredients)]
+    LoadIngredients2 --> DetailEdit[Recipe Detail Screen<br/>EDIT MODE]
+
+    %% Detail View Mode Actions
+    DetailView -->|Click Edit Button| EnterEdit[dispatch: EnterEditMode]
+    EnterEdit --> DetailEdit
+    DetailView -->|Click Back| CloseDetail[dispatch: CloseRecipeDetail]
+    CloseDetail --> RecipeList
+
+    %% Detail Edit Mode Actions
+    DetailEdit -->|Edit Name Field| AutoSave[dispatch: Rename<br/>Auto-save on change]
+    AutoSave --> DetailEdit
+    DetailEdit -->|Click Done Button| ExitEdit[dispatch: ExitEditMode]
+    ExitEdit --> DetailView
+    DetailEdit -->|Click Back| CloseDetail2[dispatch: CloseRecipeDetail]
+    CloseDetail2 --> RecipeList
+    DetailEdit -->|Click Add Ingredient| OpenIngDialog[dispatch: ManageIngredientsOpen]
+    OpenIngDialog --> IngDialog[Assign Ingredients Dialog]
+    DetailEdit -->|Click Delete on Ingredient| RemoveIng[dispatch: RemoveIngredient]
+    RemoveIng --> DetailEdit
+
+    %% Delete Recipe
+    RecipeList -->|Click Delete Icon| DeleteAction[dispatch: Delete]
+    DeleteAction --> ConfirmDelete{Confirm?}
+    ConfirmDelete -->|Yes| DeleteDB[(Delete from Database)]
+    DeleteDB --> RecipeList
+    ConfirmDelete -->|No| RecipeList
+
+    style RecipeList fill:#e1f5ff
+    style DetailView fill:#fff4e1
+    style DetailEdit fill:#ffe1e1
+    style IngDialog fill:#e1ffe1

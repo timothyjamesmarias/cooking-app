@@ -1,0 +1,40 @@
+erDiagram
+    %% FRONTEND LOCAL DATABASE SCHEMA (SQLDelight)
+    %% Last Updated: 2026-01-03
+    %% Technology: SQLDelight with SQLite driver (cross-platform)
+    %% Purpose: Offline-first local storage for recipes and ingredients
+
+    recipes {
+        TEXT local_id PK "UUID generated client-side"
+        TEXT name "Recipe name, NOT NULL"
+    }
+
+    ingredients {
+        TEXT local_id PK "UUID generated client-side"
+        TEXT name "Ingredient name, NOT NULL"
+    }
+
+    recipe_ingredients {
+        TEXT recipe_id FK "REFERENCES recipes(local_id)"
+        TEXT ingredient_id FK "REFERENCES ingredients(local_id)"
+        COMPOSITE_PK recipe_id_ingredient_id "PRIMARY KEY (recipe_id, ingredient_id)"
+    }
+
+    recipes ||--o{ recipe_ingredients : "has many"
+    ingredients ||--o{ recipe_ingredients : "used in"
+
+    %% NOTES AND CONTEXT:
+    %% 1. All IDs are client-generated UUIDs (TEXT) for offline-first architecture
+    %% 2. No auto-increment - UUIDs allow offline creation without conflicts
+    %% 3. Indices on recipe_ingredients for fast lookups:
+    %%    - idx_ingr_recipes_recipe (recipe_id)
+    %%    - idx_ingr_recipes_ingredient (ingredient_id)
+    %% 4. Junction table uses composite primary key (recipe_id, ingredient_id)
+    %% 5. Migrations tracked in: frontend/shared/src/commonMain/sqldelight/.../migrations/*.sqm
+    %% 6. Search functionality: ingredients.searchByName() uses LIKE query with LOWER() for case-insensitive search
+
+    %% FUTURE PLANNED ADDITIONS (not yet implemented):
+    %% - quantities table (amount + unit)
+    %% - recipe_steps table (instructions)
+    %% - tags table (dietary, cuisine, etc.)
+    %% - sync_status fields for backend synchronization

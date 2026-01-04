@@ -1,0 +1,56 @@
+%% EDIT MODE STATE TRANSITIONS
+%% Last Updated: 2026-01-03
+%% This diagram shows how the recipe detail screen transitions between view and edit modes
+
+stateDiagram-v2
+    [*] --> RecipeList: App Start
+    RecipeList --> DetailView: Click Recipe Name<br/>(ViewRecipeDetail)
+    RecipeList --> DetailEdit: Click Edit Icon<br/>(ViewRecipeDetailInEditMode)
+
+    DetailView --> DetailEdit: Click Edit Button<br/>(EnterEditMode)
+    DetailEdit --> DetailView: Click Done Button<br/>(ExitEditMode)
+
+    DetailView --> RecipeList: Click Back<br/>(CloseRecipeDetail)
+    DetailEdit --> RecipeList: Click Back<br/>(CloseRecipeDetail)
+
+    DetailEdit --> IngredientDialog: Click Add Ingredient<br/>(ManageIngredientsOpen)
+    IngredientDialog --> DetailEdit: Click Done<br/>(EditClose)<br/>Edit mode PERSISTS
+
+    RecipeList --> DetailView: Click Different Recipe<br/>(ViewRecipeDetail)<br/>Edit mode RESETS
+
+    note right of DetailView
+        VIEW MODE:
+        - Recipe name: Large text
+        - Ingredients: Bullet list
+        - No action buttons
+        - Top bar: Edit icon
+    end note
+
+    note right of DetailEdit
+        EDIT MODE:
+        - Recipe name: TextField (auto-save)
+        - Ingredients: ListItems with delete
+        - Add ingredient button visible
+        - Top bar: Done button
+        - Steps/Tags: Add buttons (disabled)
+    end note
+
+    note right of IngredientDialog
+        DUAL STORE COORDINATION:
+        - RecipeStore: Track assignments
+        - IngredientStore: Search & create
+        - State sync via callbacks
+    end note
+
+%% KEY BEHAVIORS:
+%% 1. ViewRecipeDetail ALWAYS resets isEditMode=false (regression fix)
+%% 2. ViewRecipeDetailInEditMode sets isEditMode=true
+%% 3. Edit mode persists when opening/closing ingredient dialog
+%% 4. Edit mode does NOT persist when navigating between recipes
+%% 5. CloseRecipeDetail resets both selectedRecipeId and isEditMode
+
+%% ARCHITECTURE NOTES:
+%% - State-based navigation (not traditional nav controllers)
+%% - selectedRecipeId determines if detail screen is shown
+%% - isEditMode determines which composables are rendered
+%% - All state managed by RecipeStore.state

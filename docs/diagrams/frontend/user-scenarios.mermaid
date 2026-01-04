@@ -1,0 +1,44 @@
+%% KEY USER SCENARIOS
+%% Last Updated: 2026-01-03
+%% Shows complete end-to-end user journeys for common tasks
+
+flowchart TD
+    subgraph Scenario1["Scenario: Create Recipe with Ingredients"]
+        S1_1[Open App] --> S1_2[Click FAB]
+        S1_2 --> S1_3[Enter Recipe Name]
+        S1_3 --> S1_4[Recipe Created<br/>Returns to List]
+        S1_4 --> S1_5[Click Edit Icon on New Recipe]
+        S1_5 --> S1_6[Detail Opens in Edit Mode]
+        S1_6 --> S1_7[Click Add Ingredient]
+        S1_7 --> S1_8[Search for Ingredient]
+        S1_8 --> S1_9{Found?}
+        S1_9 -->|Yes| S1_10[Check to Assign]
+        S1_9 -->|No| S1_11[Create New Ingredient]
+        S1_11 --> S1_10
+        S1_10 --> S1_12[Add More or Click Done]
+        S1_12 --> S1_13[Click Done in Edit Mode]
+        S1_13 --> S1_14[View Recipe with Ingredients]
+    end
+
+    subgraph Scenario2["Scenario: Quick View Recipe"]
+        S2_1[Open App] --> S2_2[Click Recipe Name]
+        S2_2 --> S2_3[View Detail<br/>Read-Only]
+        S2_3 --> S2_4[See Ingredients List]
+        S2_4 --> S2_5[Click Back]
+        S2_5 --> S2_6[Return to List]
+    end
+
+    subgraph Scenario3["Scenario: Edit Existing Recipe"]
+        S3_1[View Recipe Detail] --> S3_2[Click Edit Button]
+        S3_2 --> S3_3[Enter Edit Mode]
+        S3_3 --> S3_4[Rename Recipe]
+        S3_4 --> S3_5[Auto-saved Instantly]
+        S3_5 --> S3_6[Remove Unwanted Ingredient]
+        S3_6 --> S3_7[Add New Ingredient]
+        S3_7 --> S3_8[Click Done]
+        S3_8 --> S3_9[Back to View Mode]
+    end
+
+    style Scenario1 fill:#e1f5ff
+    style Scenario2 fill:#e1ffe1
+    style Scenario3 fill:#fff4e1
