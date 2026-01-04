@@ -69,7 +69,7 @@ class RecipeStore(
             }
             is RecipeAction.ViewRecipeDetail -> scope.launch(ioDispatcher) {
                 val assigned = repo.getIngredients(action.id)
-                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet()) }
+                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet(), isEditMode = false) }
             }
             is RecipeAction.ViewRecipeDetailInEditMode -> scope.launch(ioDispatcher) {
                 val assigned = repo.getIngredients(action.id)
