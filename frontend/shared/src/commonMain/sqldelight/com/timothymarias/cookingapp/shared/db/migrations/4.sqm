@@ -1,0 +1,12 @@
+-- Units table for measurement types
+-- Stores units with their type, symbol, and conversion factors
+CREATE TABLE units (
+  local_id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  symbol TEXT NOT NULL,
+  measurement_type TEXT NOT NULL CHECK (measurement_type IN ('WEIGHT', 'VOLUME', 'COUNT')),
+  base_conversion_factor REAL NOT NULL
+);
+
+-- Index for filtering units by measurement type
+CREATE INDEX idx_units_type ON units(measurement_type);

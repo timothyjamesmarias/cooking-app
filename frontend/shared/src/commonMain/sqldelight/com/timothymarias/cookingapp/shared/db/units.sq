@@ -1,0 +1,41 @@
+-- Query to select all units (ordered by measurement type, then name)
+selectAll:
+SELECT local_id, name, symbol, measurement_type, base_conversion_factor
+FROM units
+ORDER BY measurement_type, name;
+
+-- Insert a unit
+insertUnit:
+INSERT INTO units(local_id, name, symbol, measurement_type, base_conversion_factor)
+VALUES (?, ?, ?, ?, ?);
+
+-- Select by id
+selectById:
+SELECT local_id, name, symbol, measurement_type, base_conversion_factor
+FROM units
+WHERE local_id = ?;
+
+-- Update unit by id
+updateUnit:
+UPDATE units
+SET name = ?, symbol = ?, measurement_type = ?, base_conversion_factor = ?
+WHERE local_id = ?;
+
+-- Delete by id
+deleteById:
+DELETE FROM units
+WHERE local_id = ?;
+
+-- Select units by measurement type (for filtering in UI)
+selectByMeasurementType:
+SELECT local_id, name, symbol, measurement_type, base_conversion_factor
+FROM units
+WHERE measurement_type = ?
+ORDER BY name;
+
+-- Search units by name (case-insensitive LIKE query)
+searchByName:
+SELECT local_id, name, symbol, measurement_type, base_conversion_factor
+FROM units
+WHERE LOWER(name) LIKE LOWER('%' || ? || '%')
+ORDER BY measurement_type, name;
