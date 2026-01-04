@@ -6,6 +6,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+
 rootProject.name = "cooking_app"
 
 include(":backend")
@@ -13,4 +17,5 @@ include(":frontend:shared")
 include(":frontend:android")
 include(":frontend:ios")
 include(":frontend:desktop")
-include(":frontend:web")
+// Temporarily disabled - needs JS target in shared module
+// include(":frontend:web")

@@ -12,7 +12,7 @@ kotlin {
         val androidMain by getting
         androidMain.dependencies {
             implementation(project(":frontend:shared"))
-            implementation("androidx.activity:activity-compose:1.8.2")
+            implementation("androidx.activity:activity-compose:1.10.1")
         }
     }
 }
@@ -50,5 +50,5 @@ android {
     }
 }
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.core:core-ktx:1.15.0")
 }
