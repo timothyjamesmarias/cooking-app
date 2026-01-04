@@ -1,0 +1,267 @@
+classDiagram
+    %% FRONTEND ARCHITECTURE - UNIDIRECTIONAL DATA FLOW (Store Pattern)
+    %% Last Updated: 2026-01-03
+    %% Pattern: MVI-inspired Store pattern with reactive state management
+    %% Technology: Kotlin Multiplatform + Compose Multiplatform + SQLDelight
+    %% Key Principle: UI renders state, user actions flow through stores, stores update state
+
+    %% ========================================
+    %% DOMAIN LAYER - Pure business models
+    %% ========================================
+    class Recipe {
+        <<domain model>>
+        +String localId
+        +String name
+        ---
+        NOTE: Immutable data class
+        Future: will add steps, tags, servings
+    }
+
+    class Ingredient {
+        <<domain model>>
+        +String localId
+        +String name
+        ---
+        NOTE: Immutable data class
+        Future: will add nutrition info
+    }
+
+    %% ========================================
+    %% DATA LAYER - Repository pattern abstracts data sources
+    %% ========================================
+    class RecipeRepository {
+        <<interface>>
+        +Flow~List~Recipe~~ watchAll()
+        +Flow~Recipe?~ watchById(localId)
+        +Recipe create(recipe)
+        +Recipe updateName(localId, name)
+        +delete(localId)
+        +List~Ingredient~ getIngredients(localId)
+        +assignIngredient(recipeId, ingredientId)
+        +removeIngredient(recipeId, ingredientId)
+        +Boolean isIngredientAssigned(recipeId, ingredientId)
+        ---
+        NOTE: Abstraction allows swapping SQLDelight for network/mock
+        REACTIVE: Uses Flow for real-time database updates
+    }
+
+    class DbRecipeRepository {
+        <<implementation>>
+        -CookingDatabase db
+        +Flow~List~Recipe~~ watchAll()
+        +Recipe create(recipe)
+        ---
+        IMPLEMENTATION: Uses SQLDelight queries
+        UUID GENERATION: Creates client-side UUIDs for offline-first
+        FLOW MAPPING: Converts SQLDelight queries to domain models
+    }
+
+    class IngredientRepository {
+        <<interface>>
+        +Flow~List~Ingredient~~ watchAll()
+        +Flow~List~Ingredient~~ watchByQuery(query)
+        +Ingredient create(ingredient)
+        +Ingredient updateName(localId, name)
+        +delete(localId)
+        ---
+        NOTE: watchByQuery enables search functionality
+        DEBOUNCING: Search handled at Store level (300ms delay)
+    }
+
+    class DbIngredientRepository {
+        <<implementation>>
+        -CookingDatabase db
+        +Flow~List~Ingredient~~ watchByQuery(query)
+        ---
+        SEARCH: Uses SQLite LIKE query with LOWER() for case-insensitive
+        REACTIVE: Flows auto-update when database changes
+    }
+
+    RecipeRepository <|.. DbRecipeRepository : implements
+    IngredientRepository <|.. DbIngredientRepository : implements
+
+    %% ========================================
+    %% PRESENTATION LAYER - Store pattern for state management
+    %% ========================================
+    class RecipeStore {
+        <<state manager>>
+        -RecipeRepository repo
+        -CoroutineScope scope
+        -MutableStateFlow~RecipeState~ _state
+        +StateFlow~RecipeState~ state
+        +dispatch(RecipeAction)
+        +close()
+        ---
+        PATTERN: Single source of truth for recipe UI state
+        THREADING: All repo calls on IO dispatcher
+        LIFECYCLE: Scope cancelled on close()
+        INIT: Launches collector for watchAll() flow on creation
+        TEST NOTE: Init block makes Store-level testing complex
+    }
+
+    class RecipeState {
+        <<immutable state>>
+        +List~Recipe~ items
+        +String? selectedRecipeId
+        +Boolean isEditMode
+        +String? managingIngredientsId
+        +Set~String~ assignedIngredientIds
+        +Boolean isLoading
+        +Boolean isSaving
+        +String? error
+        ---
+        IMMUTABILITY: All fields val, copied via .copy()
+        UI DRIVES FROM THIS: Every UI change comes from state change
+        EDIT MODE: Tracks view vs edit mode for detail screen
+        NAVIGATION: selectedRecipeId determines which screen to show
+    }
+
+    class RecipeAction {
+        <<sealed interface>>
+        +Create(name)
+        +Rename(id, name)
+        +Delete(id)
+        +ViewRecipeDetail(id)
+        +ViewRecipeDetailInEditMode(id)
+        +CloseRecipeDetail
+        +EnterEditMode
+        +ExitEditMode
+        +AssignIngredient(recipeId, ingredientId)
+        +RemoveIngredient(recipeId, ingredientId)
+        +ManageIngredientsOpen(id)
+        +EditClose
+        ---
+        PATTERN: Every user intent is an action
+        TYPE SAFETY: Sealed interface = compiler-checked exhaustiveness
+        NAVIGATION ACTIONS: ViewRecipeDetail vs ViewRecipeDetailInEditMode
+        BUG FIX NOTE: ViewRecipeDetail now resets isEditMode=false
+    }
+
+    class IngredientStore {
+        <<state manager>>
+        -IngredientRepository repo
+        -CoroutineScope scope
+        -MutableStateFlow~IngredientState~ _state
+        +StateFlow~IngredientState~ state
+        +dispatch(IngredientAction)
+        +close()
+        ---
+        SEARCH DEBOUNCING: Uses transformLatest with 300ms delay
+        OPTIMIZATION: Blank queries return immediately (no delay)
+        PATTERN: Same unidirectional flow as RecipeStore
+    }
+
+    class IngredientState {
+        <<immutable state>>
+        +List~Ingredient~ items
+        +String query
+        +Boolean isLoading
+        +Boolean isSaving
+        +String? error
+        ---
+        SEARCH: query field drives search results in items
+        REACTIVE: items updates when query changes or DB changes
+    }
+
+    class IngredientAction {
+        <<sealed interface>>
+        +Create(name)
+        +Rename(id, name)
+        +Delete(id)
+        +QueryChanged(query)
+        ---
+        SIMPLE: Fewer actions than Recipe (no navigation)
+        SEARCH: QueryChanged triggers debounced search
+    }
+
+    RecipeStore --> RecipeState : publishes
+    RecipeStore --> RecipeAction : consumes
+    RecipeStore --> RecipeRepository : uses
+    IngredientStore --> IngredientState : publishes
+    IngredientStore --> IngredientAction : consumes
+    IngredientStore --> IngredientRepository : uses
+
+    %% ========================================
+    %% UI LAYER - Compose screens (stateless, reactive to state)
+    %% ========================================
+    class RecipeListScreen {
+        <<@Composable>>
+        +RecipeStore store
+        ---
+        RENDERS: List of recipes from RecipeState.items
+        INTERACTIONS: Dispatches actions on user clicks
+        STATELESS: No local state, pure function of RecipeState
+        NAVIGATION: onClick dispatches ViewRecipeDetail or ViewRecipeDetailInEditMode
+        FAB: Create new recipe button
+    }
+
+    class RecipeDetailScreen {
+        <<@Composable>>
+        +RecipeStore recipeStore
+        +IngredientStore ingredientStore
+        ---
+        CONDITIONAL RENDERING: View mode vs Edit mode based on isEditMode
+        COMPOSABLE SEPARATION: RecipeNameSection, IngredientsSection, etc.
+        EDIT MODE TOGGLE: Edit icon (view) / Done button (edit) in top bar
+        PATTERN: Early returns in composables to avoid nested if/else
+        INGREDIENTS: Shows AssignIngredientsDialog when adding
+    }
+
+    class IngredientListScreen {
+        <<@Composable>>
+        +IngredientStore store
+        ---
+        RENDERS: List of ingredients from IngredientState.items
+        SIMPLE: Basic CRUD operations only
+    }
+
+    class AssignIngredientsDialog {
+        <<@Composable>>
+        +String recipeId
+        +IngredientState ingredientState
+        +RecipeState recipeState
+        +onIngredientAction callback
+        +onRecipeAction callback
+        +onDismiss callback
+        ---
+        DUAL STORE: Coordinates RecipeStore + IngredientStore
+        SEARCH: IngredientSearchField with real-time filtering
+        CHECKBOXES: assignedIngredientIds determines checked state
+        CREATE INLINE: "Create new ingredient" button when searching
+        REUSABLE: Used from RecipeListScreen AND RecipeDetailScreen
+    }
+
+    class AppRoot {
+        <<@Composable>>
+        +AppState appState
+        +RecipeStore recipeStore
+        +IngredientStore ingredientStore
+        ---
+        ROOT COORDINATOR: Top-level navigation and state wiring
+        NAVIGATION: Conditional rendering based on selectedRecipeId and currentScreen
+        STORES: Single instances shared across screens
+        PATTERN: Scaffold with bottom nav, conditional content area
+    }
+
+    RecipeListScreen --> RecipeStore : observes state, dispatches actions
+    RecipeDetailScreen --> RecipeStore : observes state, dispatches actions
+    RecipeDetailScreen --> IngredientStore : observes state, dispatches actions
+    IngredientListScreen --> IngredientStore : observes state, dispatches actions
+    AssignIngredientsDialog --> RecipeStore : dispatches actions
+    AssignIngredientsDialog --> IngredientStore : dispatches actions
+    AppRoot --> RecipeListScreen : renders conditionally
+    AppRoot --> RecipeDetailScreen : renders conditionally
+    AppRoot --> IngredientListScreen : renders conditionally
+    AppRoot --> AssignIngredientsDialog : renders when managing ingredients
+
+    %% ========================================
+    %% DATA FLOW SUMMARY
+    %% ========================================
+    note for RecipeStore "DATA FLOW:\n1. User interacts with UI\n2. UI dispatches Action to Store\n3. Store updates repository\n4. Repository updates database\n5. Database change triggers Flow\n6. Store updates State\n7. UI recomposes with new State\n\nTHREADING:\n- UI: Main thread\n- Store dispatch: Main thread\n- Repository calls: IO dispatcher\n- State updates: Main thread (via update{})\n\nTESTING:\n- Repository layer: Use real SQLite (fast, reliable)\n- Store layer: Use fake Repository (avoid init block issues)"
+
+    %% ========================================
+    %% FUTURE ARCHITECTURE NOTES
+    %% ========================================
+    note for Recipe "PLANNED:\n- RecipeSteps (ordered instructions)\n- Tags (dietary, cuisine, meal type)\n- Servings, prep/cook time\n- Photo URLs\n- Sync status for backend sync"
+
+    note for AssignIngredientsDialog "ARCHITECTURE DECISION:\nThis dialog coordinates TWO stores (Recipe + Ingredient).\nAlternative considered: Single RecipeEditStore\nCurrent approach chosen for:\n- Clear separation of concerns\n- Reusability of IngredientStore search\n- Simpler testing (independent stores)"

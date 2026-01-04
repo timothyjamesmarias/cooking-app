@@ -1,0 +1,29 @@
+%% NAVIGATION OVERVIEW
+%% Last Updated: 2026-01-03
+%% Shows the overall app navigation structure and screen relationships
+
+flowchart LR
+    subgraph Navigation["App Navigation Structure"]
+        AppRoot[App Root<br/>Scaffold + Bottom Nav]
+
+        subgraph RecipeTab["Recipe Tab"]
+            RList[Recipe List]
+            RDetail[Recipe Detail<br/>Conditional:<br/>View or Edit Mode]
+        end
+
+        subgraph IngredientTab["Ingredient Tab"]
+            IList[Ingredient List<br/>Simple CRUD]
+        end
+
+        Dialog[Assign Ingredients Dialog<br/>Overlay, not navigation]
+    end
+
+    AppRoot --> RecipeTab
+    AppRoot --> IngredientTab
+    RList -.-> RDetail
+    RDetail -.-> Dialog
+
+    style AppRoot fill:#e1e1ff
+    style RecipeTab fill:#ffe1e1
+    style IngredientTab fill:#e1ffe1
+    style Dialog fill:#fff4e1

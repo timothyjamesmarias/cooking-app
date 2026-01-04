@@ -1,0 +1,40 @@
+%% USER INTERACTION FLOWCHARTS - VISUAL INDEX
+%% Last Updated: 2026-01-03
+%% This diagram shows the organization of all user flow documentation
+
+flowchart TD
+    Start([User Flow Documentation]) --> Flows[User Flows]
+    Start --> Arch[Architecture]
+    Start --> Data[Data Layer]
+
+    Flows --> Recipe[recipe-management-flow.mermaid]
+    Flows --> Ingredient[ingredient-assignment-flow.mermaid]
+    Flows --> EditMode[edit-mode-states.mermaid]
+    Flows --> Nav[navigation-overview.mermaid]
+    Flows --> Scenarios[user-scenarios.mermaid]
+
+    Arch --> ArchDiagram[frontend-architecture.mermaid]
+    Data --> SchemaDiagram[frontend-schema.mermaid]
+
+    Recipe -.-> RecipeDesc["Complete recipe CRUD:<br/>Create, View, Edit, Delete"]
+    Ingredient -.-> IngDesc["Search & assign ingredients<br/>Debounced search, inline create"]
+    EditMode -.-> EditDesc["State transitions:<br/>View mode ↔ Edit mode"]
+    Nav -.-> NavDesc["App navigation structure:<br/>Tabs, screens, dialogs"]
+    Scenarios -.-> ScenarioDesc["End-to-end journeys:<br/>3 key user scenarios"]
+
+    ArchDiagram -.-> ArchDesc["UML class diagram:<br/>Store pattern, repositories"]
+    SchemaDiagram -.-> SchemaDesc["SQLDelight schema:<br/>recipes, ingredients, junction"]
+
+    style Start fill:#e1e1ff
+    style Flows fill:#ffe1e1
+    style Arch fill:#e1ffe1
+    style Data fill:#fff4e1
+
+    style Recipe fill:#ffcccc
+    style Ingredient fill:#ffcccc
+    style EditMode fill:#ffcccc
+    style Nav fill:#ffcccc
+    style Scenarios fill:#ffcccc
+
+    style ArchDiagram fill:#ccffcc
+    style SchemaDiagram fill:#ffffcc

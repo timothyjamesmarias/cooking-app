@@ -1,0 +1,47 @@
+%% INGREDIENT ASSIGNMENT FLOW
+%% Last Updated: 2026-01-03
+%% Shows how users search, assign, and create ingredients from the recipe detail screen
+
+flowchart TD
+    Start([From Detail Screen<br/>EDIT MODE]) --> ClickAdd[Click Add Ingredient Button]
+    ClickAdd --> OpenDialog[dispatch: ManageIngredientsOpen]
+    OpenDialog --> ShowDialog[Assign Ingredients Dialog Opens]
+
+    %% Search Flow
+    ShowDialog --> SearchField[Search Field Active]
+    SearchField -->|Type Query| Debounce[300ms Debounce]
+    Debounce --> QueryAction[dispatch: QueryChanged]
+    QueryAction --> SearchDB[(Search Database<br/>LIKE query)]
+    SearchDB --> UpdateResults[Update Ingredient List]
+    UpdateResults --> SearchField
+
+    %% Blank Query Optimization
+    SearchField -->|Clear Query| Immediate[No Debounce<br/>Immediate search]
+    Immediate --> QueryAction2[dispatch: QueryChanged]
+    QueryAction2 --> SearchDB
+
+    %% Checkbox Interactions
+    ShowDialog --> IngList[Ingredient List with Checkboxes]
+    IngList -->|Check Ingredient| AssignAction[dispatch: AssignIngredient]
+    AssignAction --> AddJunction[(Insert to recipe_ingredients)]
+    AddJunction --> UpdateChecked[Update Checkbox State]
+    UpdateChecked --> IngList
+
+    IngList -->|Uncheck Ingredient| RemoveAction[dispatch: RemoveIngredient]
+    RemoveAction --> DeleteJunction[(Delete from recipe_ingredients)]
+    DeleteJunction --> UpdateChecked
+
+    %% Create New Ingredient
+    SearchField -->|No Results Found| CreateButton[Create New Ingredient Button]
+    CreateButton -->|Click| CreateIng[dispatch: Create<br/>ingredient name from query]
+    CreateIng --> SaveIng[(Save to Database)]
+    SaveIng --> ClearQuery[dispatch: QueryChanged<br/>with empty string]
+    ClearQuery --> ShowDialog
+
+    %% Close Dialog
+    ShowDialog -->|Click Done| CloseDialog[dispatch: EditClose +<br/>IngredientAction.QueryChanged]
+    CloseDialog --> ReturnDetail[Back to Detail Screen<br/>EDIT MODE persists]
+
+    style ShowDialog fill:#e1ffe1
+    style SearchField fill:#fff4e1
+    style IngList fill:#e1f5ff
