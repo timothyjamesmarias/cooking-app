@@ -20,6 +20,7 @@ import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientSto
 import com.timothymarias.cookingapp.shared.presentation.ingredient.list.IngredientListScreen
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
+import com.timothymarias.cookingapp.shared.presentation.recipe.detail.RecipeDetailScreen
 import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
 import com.timothymarias.cookingapp.shared.presentation.recipe.list.RecipeListScreen
 
@@ -53,7 +54,13 @@ fun AppRoot(
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (appState.currentScreen) {
-                Screen.RecipeList -> RecipeListScreen(recipeStore)
+                Screen.RecipeList -> {
+                    if (recipeState.selectedRecipeId != null) {
+                        RecipeDetailScreen(recipeStore, ingredientStore)
+                    } else {
+                        RecipeListScreen(recipeStore)
+                    }
+                }
                 Screen.IngredientList -> IngredientListScreen(ingredientStore)
             }
         }

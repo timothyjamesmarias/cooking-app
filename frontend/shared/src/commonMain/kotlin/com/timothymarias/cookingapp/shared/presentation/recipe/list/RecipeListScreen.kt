@@ -63,37 +63,6 @@ fun RecipeListScreen(store: RecipeStore) {
                 }
             )
         }
-
-        state.editingId?.let { id ->
-            var name by remember { mutableStateOf(state.editName) }
-            AlertDialog(
-                onDismissRequest = { store.dispatch(RecipeAction.EditClose) },
-                title = { Text("Edit Recipe") },
-                text = {
-                    Column {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Name") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            store.dispatch(RecipeAction.Rename(id, name))
-                            store.dispatch(RecipeAction.EditClose)
-                        },
-                        enabled = name.isNotBlank()
-                    ) { Text("Save") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { store.dispatch(RecipeAction.EditClose) }) { Text("Cancel") }
-                }
-            )
-        }
     }
 }
 
@@ -118,9 +87,9 @@ fun RecipeListContent(
                     items(state.items) { recipe ->
                         RecipeRow(
                             recipe = recipe,
-                            onClick = { onEvent(RecipeAction.EditOpen(recipe.localId)) },
+                            onClick = { onEvent(RecipeAction.ViewRecipeDetail(recipe.localId)) },
                             onDelete = { onEvent(RecipeAction.Delete(recipe.localId)) },
-                            onManageIngredients = { onEvent(RecipeAction.ManageIngredientsOpen(recipe.localId)) }
+                            onManageIngredients = { onEvent(RecipeAction.ViewRecipeDetailInEditMode(recipe.localId)) }
                         )
                     }
                 }

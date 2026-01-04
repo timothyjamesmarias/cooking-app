@@ -10,8 +10,8 @@ data class RecipeState(
     val isSaving: Boolean = false,
     val error: String? = null,
     // UI flags to survive recompositions/navigation
-    val editingId: String? = null,
-    val editName: String = "",
     val managingIngredientsId: String? = null,
     val assignedIngredientIds: Set<String> = emptySet(),
+    val selectedRecipeId: String? = null, // For recipe detail screen
+    val isEditMode: Boolean = false, // For recipe detail screen edit mode
 )

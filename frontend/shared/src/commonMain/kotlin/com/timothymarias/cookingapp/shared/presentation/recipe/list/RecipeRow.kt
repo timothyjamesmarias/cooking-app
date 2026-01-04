@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,7 +36,7 @@ fun RecipeRow(
         }
         Row {
             IconButton(onClick = onManageIngredients) {
-                Icon(Icons.Default.Settings, contentDescription = "Manage Ingredients")
+                Icon(Icons.Default.Edit, contentDescription = "Edit Recipe")
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete Recipe")
