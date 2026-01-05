@@ -1,8 +1,10 @@
 package com.timothymarias.cookingapp.shared.presentation.recipe
 
 import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
+import com.timothymarias.cookingapp.shared.data.repository.quantity.QuantityRepository
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
+import com.timothymarias.cookingapp.shared.domain.model.Quantity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -18,13 +20,15 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecipeDetailNavigationTest {
     private lateinit var fakeRepo: FakeRecipeRepository
+    private lateinit var fakeQuantityRepo: FakeQuantityRepository
     private lateinit var store: RecipeStore
     private val testDispatcher = StandardTestDispatcher()
 
     @BeforeTest
     fun setup() {
         fakeRepo = FakeRecipeRepository()
-        store = RecipeStore(fakeRepo, testDispatcher)
+        fakeQuantityRepo = FakeQuantityRepository()
+        store = RecipeStore(fakeRepo, fakeQuantityRepo, testDispatcher)
     }
 
     @AfterTest
@@ -267,9 +271,47 @@ private class FakeRecipeRepository : RecipeRepository {
 
     override suspend fun removeIngredient(recipeId: String, ingredientId: String) {}
 
-    override suspend fun getIngredients(recipeId: String): List<Ingredient> {
-        return ingredientsByRecipe[recipeId] ?: emptyList()
+    override suspend fun getIngredients(localId: String): List<Ingredient> {
+        return ingredientsByRecipe[localId] ?: emptyList()
     }
 
     override suspend fun isIngredientAssigned(recipeId: String, ingredientId: String): Boolean = false
+
+    override suspend fun updateIngredientQuantity(recipeId: String, ingredientId: String, quantityId: String?) {}
+}
+
+/**
+ * Fake quantity repository for testing.
+ */
+private class FakeQuantityRepository : QuantityRepository {
+    private val quantities = mutableMapOf<String, Quantity>()
+    private var idCounter = 0
+
+    override fun watchAll(): Flow<List<Quantity>> = flowOf(quantities.values.toList())
+
+    override fun watchById(localId: String): Flow<Quantity?> = flowOf(quantities[localId])
+
+    override suspend fun getAll(): List<Quantity> = quantities.values.toList()
+
+    override suspend fun getById(localId: String): Quantity? = quantities[localId]
+
+    override suspend fun getByUnitId(unitId: String): List<Quantity> {
+        return quantities.values.filter { it.unitId == unitId }
+    }
+
+    override suspend fun create(quantity: Quantity): Quantity {
+        val id = if (quantity.localId.isEmpty()) "quantity-${idCounter++}" else quantity.localId
+        val saved = quantity.copy(localId = id)
+        quantities[id] = saved
+        return saved
+    }
+
+    override suspend fun update(quantity: Quantity): Quantity {
+        quantities[quantity.localId] = quantity
+        return quantity
+    }
+
+    override suspend fun delete(localId: String) {
+        quantities.remove(localId)
+    }
 }

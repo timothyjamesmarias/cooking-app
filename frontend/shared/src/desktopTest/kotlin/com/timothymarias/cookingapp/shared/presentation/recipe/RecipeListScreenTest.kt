@@ -2,6 +2,7 @@ package com.timothymarias.cookingapp.shared.presentation.recipe
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.timothymarias.cookingapp.shared.data.repository.recipe.DbRecipeRepository
+import com.timothymarias.cookingapp.shared.data.repository.quantity.DbQuantityRepository
 import com.timothymarias.cookingapp.shared.db.CookingDatabase
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import com.timothymarias.cookingapp.shared.presentation.recipe.list.RecipeListScreen
@@ -23,8 +24,9 @@ class RecipeListScreenTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         CookingDatabase.Schema.create(driver)
         database = CookingDatabase(driver)
-        val repo = DbRecipeRepository(database, Dispatchers.Default)
-        store = RecipeStore(repo)
+        val recipeRepo = DbRecipeRepository(database, Dispatchers.Default)
+        val quantityRepo = DbQuantityRepository(database, Dispatchers.Default)
+        store = RecipeStore(recipeRepo, quantityRepo)
     }
 
     @Test

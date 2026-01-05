@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
+import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.EditIngredientQuantityDialog
 import com.timothymarias.cookingapp.shared.presentation.unit.UnitStore
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,6 +31,9 @@ fun RecipeDetailScreen(
     unitStore: UnitStore
 ) {
     val recipeState by recipeStore.state.collectAsState()
+    val unitState by unitStore.state.collectAsState()
+    val ingredientState by ingredientStore.state.collectAsState()
+
     val selectedRecipeId = recipeState.selectedRecipeId ?: return
     val recipe = recipeState.items.firstOrNull { it.localId == selectedRecipeId } ?: return
     val isEditMode = recipeState.isEditMode
@@ -95,6 +100,41 @@ fun RecipeDetailScreen(
                     isEditMode = isEditMode
                 )
             }
+        }
+    }
+
+    // Edit Quantity Dialog
+    recipeState.editingQuantityIngredientId?.let { ingredientId ->
+        val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
+
+        ingredient?.let {
+            EditIngredientQuantityDialog(
+                recipeId = selectedRecipeId,
+                ingredientId = ingredientId,
+                ingredientName = ingredient.name,
+                unitState = unitState,
+                onSave = { amount, unitId ->
+                    recipeStore.dispatch(
+                        RecipeAction.SaveQuantity(
+                            recipeId = selectedRecipeId,
+                            ingredientId = ingredientId,
+                            amount = amount,
+                            unitId = unitId
+                        )
+                    )
+                },
+                onClear = {
+                    recipeStore.dispatch(
+                        RecipeAction.RemoveQuantity(
+                            recipeId = selectedRecipeId,
+                            ingredientId = ingredientId
+                        )
+                    )
+                },
+                onDismiss = {
+                    recipeStore.dispatch(RecipeAction.CloseQuantityEditor)
+                }
+            )
         }
     }
 }
@@ -320,13 +360,25 @@ private fun IngredientsEditList(
             ingredient?.let {
                 ListItem(
                     headlineContent = { Text(it.name) },
+                    supportingContent = { Text("Tap edit to set quantity", style = MaterialTheme.typography.bodySmall) },
                     trailingContent = {
-                        IconButton(
-                            onClick = {
-                                recipeStore.dispatch(RecipeAction.RemoveIngredient(recipeId, ingredientId))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // Edit quantity icon
+                            IconButton(
+                                onClick = {
+                                    recipeStore.dispatch(RecipeAction.OpenQuantityEditor(ingredientId))
+                                }
+                            ) {
+                                Icon(Icons.Outlined.Edit, contentDescription = "Edit Quantity")
                             }
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove")
+                            // Remove ingredient icon
+                            IconButton(
+                                onClick = {
+                                    recipeStore.dispatch(RecipeAction.RemoveIngredient(recipeId, ingredientId))
+                                }
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = "Remove")
+                            }
                         }
                     }
                 )
