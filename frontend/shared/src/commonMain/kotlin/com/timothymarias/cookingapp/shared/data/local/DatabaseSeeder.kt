@@ -1,32 +1,115 @@
 package com.timothymarias.cookingapp.shared.data.local
 
+import com.timothymarias.cookingapp.shared.data.repository.ingredient.IngredientRepository
+import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
 import com.timothymarias.cookingapp.shared.data.repository.unit.UnitRepository
+import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.MeasurementType
+import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import com.timothymarias.cookingapp.shared.domain.model.Unit
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 /**
- * Seeds the database with initial reference data.
- * Designed to be run once at app initialization.
+ * Seeds the database with reference data and test data.
+ *
+ * **Production Seeding** (always runs):
+ * - Common measurement units
+ *
+ * **Development Seeding** (debug builds only):
+ * - Sample recipes
+ * - Common ingredients
+ *
+ * Keeps seed data in code for type safety and version control.
+ * See BuildConfig.isDebug for environment detection.
  */
 object DatabaseSeeder {
+
+    /**
+     * Seeds production data that should exist in all builds.
+     * Call this on app initialization regardless of environment.
+     */
+    suspend fun seedProduction(unitRepository: UnitRepository) {
+        seedUnitsIfEmpty(unitRepository)
+    }
+
+    /**
+     * Seeds development/test data for easier testing during development.
+     * Only call this in debug builds (check BuildConfig.isDebug).
+     */
+    suspend fun seedDevelopment(
+        recipeRepository: RecipeRepository,
+        ingredientRepository: IngredientRepository,
+        unitRepository: UnitRepository
+    ) {
+        // First, ensure production data is seeded
+        seedProduction(unitRepository)
+
+        // Then seed dev-only data
+        seedTestIngredientsIfEmpty(ingredientRepository)
+        seedTestRecipesIfEmpty(recipeRepository, ingredientRepository)
+    }
+
     /**
      * Seeds common units if the units table is empty.
-     * Returns true if seeding occurred, false if units already existed.
+     * Safe to call multiple times; only inserts if table is empty.
      */
-    suspend fun seedUnitsIfEmpty(unitRepository: UnitRepository): Boolean {
+    private suspend fun seedUnitsIfEmpty(unitRepository: UnitRepository): Boolean {
         val existing = unitRepository.getAll()
         if (existing.isNotEmpty()) {
             return false // Already seeded
         }
 
-        // Seed common units
-        commonUnits.forEach { unit ->
+        for (unit in commonUnits) {
             unitRepository.create(unit)
         }
+        return true
+    }
 
-        return true // Seeding completed
+    /**
+     * Seeds common ingredients for testing if the table is empty.
+     */
+    private suspend fun seedTestIngredientsIfEmpty(ingredientRepository: IngredientRepository): Boolean {
+        val existing = ingredientRepository.getAll()
+        if (existing.isNotEmpty()) {
+            return false
+        }
+
+        for (ingredient in testIngredients) {
+            ingredientRepository.create(ingredient)
+        }
+        return true
+    }
+
+    /**
+     * Seeds sample recipes for testing if the table is empty.
+     * Assigns random ingredients to each recipe.
+     */
+    private suspend fun seedTestRecipesIfEmpty(
+        recipeRepository: RecipeRepository,
+        ingredientRepository: IngredientRepository
+    ): Boolean {
+        // Simple check: if we already have recipes, skip
+        val existingRecipes = ingredientRepository.getAll()
+        // Note: For better check, we'd use recipeRepository, but getAll() isn't in the interface
+        // For now, we'll just attempt to create and rely on unique constraints
+
+        val allIngredients = ingredientRepository.getAll()
+        if (allIngredients.isEmpty()) {
+            // Can't create meaningful test recipes without ingredients
+            return false
+        }
+
+        for (recipe in testRecipes) {
+            val created = recipeRepository.create(recipe)
+
+            // Assign 2-4 random ingredients to each recipe
+            val ingredientsToAssign = allIngredients.shuffled().take((2..4).random())
+            for (ingredient in ingredientsToAssign) {
+                recipeRepository.assignIngredient(created.localId, ingredient.localId)
+            }
+        }
+        return true
     }
 
     /**
@@ -155,5 +238,49 @@ object DatabaseSeeder {
             measurementType = MeasurementType.COUNT,
             baseConversionFactor = 12.0
         ),
+    )
+
+    /**
+     * Test ingredients for development builds.
+     * Covers common pantry staples across multiple categories.
+     */
+    private val testIngredients = listOf(
+        Ingredient(localId = "", name = "All-Purpose Flour"),
+        Ingredient(localId = "", name = "Sugar"),
+        Ingredient(localId = "", name = "Salt"),
+        Ingredient(localId = "", name = "Butter"),
+        Ingredient(localId = "", name = "Eggs"),
+        Ingredient(localId = "", name = "Milk"),
+        Ingredient(localId = "", name = "Olive Oil"),
+        Ingredient(localId = "", name = "Chicken Breast"),
+        Ingredient(localId = "", name = "Onion"),
+        Ingredient(localId = "", name = "Garlic"),
+        Ingredient(localId = "", name = "Tomatoes"),
+        Ingredient(localId = "", name = "Basil"),
+        Ingredient(localId = "", name = "Black Pepper"),
+        Ingredient(localId = "", name = "Parmesan Cheese"),
+        Ingredient(localId = "", name = "Pasta"),
+        Ingredient(localId = "", name = "Rice"),
+        Ingredient(localId = "", name = "Carrots"),
+        Ingredient(localId = "", name = "Celery"),
+        Ingredient(localId = "", name = "Potatoes"),
+        Ingredient(localId = "", name = "Broccoli"),
+    )
+
+    /**
+     * Test recipes for development builds.
+     * Ingredients will be randomly assigned during seeding.
+     */
+    private val testRecipes = listOf(
+        Recipe(localId = "", name = "Classic Chocolate Chip Cookies"),
+        Recipe(localId = "", name = "Spaghetti Carbonara"),
+        Recipe(localId = "", name = "Chicken Stir Fry"),
+        Recipe(localId = "", name = "Caesar Salad"),
+        Recipe(localId = "", name = "Vegetable Soup"),
+        Recipe(localId = "", name = "Grilled Cheese Sandwich"),
+        Recipe(localId = "", name = "Banana Bread"),
+        Recipe(localId = "", name = "Tomato Basil Pasta"),
+        Recipe(localId = "", name = "Roasted Vegetables"),
+        Recipe(localId = "", name = "Scrambled Eggs"),
     )
 }

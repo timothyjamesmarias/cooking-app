@@ -1,6 +1,7 @@
 package com.timothymarias.cookingapp.shared
 
 import app.cash.sqldelight.db.SqlDriver
+import com.timothymarias.cookingapp.shared.data.local.BuildConfig
 import com.timothymarias.cookingapp.shared.data.local.DatabaseDriverFactory
 import com.timothymarias.cookingapp.shared.data.local.DatabaseSeeder
 import com.timothymarias.cookingapp.shared.data.local.DriverConfig
@@ -58,7 +59,19 @@ object ServiceLocator {
 
         // Seed reference data asynchronously
         initScope.launch {
-            DatabaseSeeder.seedUnitsIfEmpty(unitRepository)
+            if (BuildConfig.isDebug) {
+                // Development build: seed test data
+                println("Development build detected - seeding test data")
+                DatabaseSeeder.seedDevelopment(
+                    recipeRepository = recipeRepository,
+                    ingredientRepository = ingredientRepository,
+                    unitRepository = unitRepository
+                )
+            } else {
+                // Production build: only seed essential reference data
+                println("Production build - seeding reference data only")
+                DatabaseSeeder.seedProduction(unitRepository)
+            }
         }
 
         initialized = true
