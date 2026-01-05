@@ -9,12 +9,13 @@ kotlin {
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
-    ).forEach {
-        it.binaries.executable {
-            entryPoint = "main"
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
         }
     }
-    
+
     sourceSets {
         iosMain.dependencies {
             implementation(project(":frontend:shared"))

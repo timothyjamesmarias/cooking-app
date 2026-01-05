@@ -4,7 +4,7 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jetbrains.compose")
     id("com.android.library")
-    id("app.cash.sqldelight") version "2.1.0"
+    id("app.cash.sqldelight") version "2.2.1"
 }
 
 kotlin {
@@ -25,18 +25,19 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
+                implementation(compose.materialIconsExtended)
                 implementation(compose.ui)
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
-                implementation("io.ktor:ktor-client-core:2.3.7")
-                implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-                implementation("io.ktor:ktor-client-logging:2.3.7")
+                implementation("io.ktor:ktor-client-core:3.3.3")
+                implementation("io.ktor:ktor-client-content-negotiation:3.3.3")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.3")
+                implementation("io.ktor:ktor-client-logging:3.3.3")
                 implementation("app.softwork:kotlinx-uuid-core:0.0.22")
 
                 // SQLDelight common runtime + coroutines extensions
-                implementation("app.cash.sqldelight:runtime:2.1.0")
-                implementation("app.cash.sqldelight:coroutines-extensions:2.1.0")
+                implementation("app.cash.sqldelight:runtime:2.2.1")
+                implementation("app.cash.sqldelight:coroutines-extensions:2.2.1")
             }
         }
 
@@ -51,46 +52,46 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(compose.preview)
-                implementation("androidx.activity:activity-compose:1.8.2")
-                implementation("io.ktor:ktor-client-android:2.3.7")
+                implementation("androidx.activity:activity-compose:1.10.1")
+                implementation("io.ktor:ktor-client-android:3.3.3")
 
                 // SQLDelight Android driver
-                implementation("app.cash.sqldelight:android-driver:2.1.0")
+                implementation("app.cash.sqldelight:android-driver:2.2.1")
             }
         }
         
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation("io.ktor:ktor-client-okhttp:2.3.7")
+                implementation("io.ktor:ktor-client-okhttp:3.3.3")
 
                 // SQLDelight JVM/desktop driver
-                implementation("app.cash.sqldelight:sqlite-driver:2.1.0")
+                implementation("app.cash.sqldelight:sqlite-driver:2.2.1")
             }
         }
 
         val desktopTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
-                implementation("app.cash.sqldelight:sqlite-driver:2.1.0")
+                implementation("app.cash.sqldelight:sqlite-driver:2.2.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
                 implementation("app.cash.turbine:turbine:1.0.0")
             }
         }
-        
+
         val iosX64Main by getting {
             dependencies {
-                implementation("app.cash.sqldelight:native-driver:2.1.0")
+                implementation("app.cash.sqldelight:native-driver:2.2.1")
             }
         }
         val iosArm64Main by getting {
             dependencies {
-                implementation("app.cash.sqldelight:native-driver:2.1.0")
+                implementation("app.cash.sqldelight:native-driver:2.2.1")
             }
         }
         val iosSimulatorArm64Main by getting {
             dependencies {
-                implementation("app.cash.sqldelight:native-driver:2.1.0")
+                implementation("app.cash.sqldelight:native-driver:2.2.1")
             }
         }
     }
