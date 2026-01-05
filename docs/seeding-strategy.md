@@ -190,8 +190,26 @@ fun `seedProduction creates 17 units`() = runTest {
 }
 ```
 
+## Migration Pitfalls (Desktop)
+
+### Issue: "Table already exists" on Second Run
+
+**Problem**: SQLDelight's `Schema.create()` doesn't set `PRAGMA user_version`, causing:
+1. First run: Creates database with all tables
+2. Second run: Sees version = 0, tries to migrate, fails with "table already exists"
+
+**Solution** (implemented in `DatabaseDriverFactory.desktop.kt`):
+```kotlin
+// After creating schema, explicitly set version
+CookingDatabase.Schema.create(driver)
+setUserVersion(driver, CookingDatabase.Schema.version)
+```
+
+**Note**: Android and iOS drivers handle this automatically. Only JVM/Desktop needs manual version management.
+
 ## References
 
 - Common mobile seeding patterns: [Android Room pre-population](https://developer.android.com/training/data-storage/room/prepopulate)
 - KMP environment detection: [Kotlin expect/actual](https://kotlinlang.org/docs/multiplatform-connect-to-apis.html)
+- SQLDelight migrations: [SQLDelight docs](https://cashapp.github.io/sqldelight/2.0.0/jvm_sqlite/migrations/)
 - Alternative: [Liquibase for mobile](https://www.liquibase.com/) (overkill for most apps)

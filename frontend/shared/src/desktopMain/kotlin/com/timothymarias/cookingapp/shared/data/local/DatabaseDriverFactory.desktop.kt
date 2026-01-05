@@ -16,13 +16,17 @@ actual class DatabaseDriverFactory actual constructor(private val config: Driver
         val isInMemory = dbName == ":memory:" || dbName.startsWith("file::memory:")
         if (isInMemory) {
             CookingDatabase.Schema.create(driver)
+            setUserVersion(driver, CookingDatabase.Schema.version)
             return driver
         }
 
         val dbFile = File(dbName)
         if (!dbFile.exists()) {
-            // Fresh database file: create full schema
+            // Fresh database file: create full schema and set version
+            println("Creating new database at version ${CookingDatabase.Schema.version}")
             CookingDatabase.Schema.create(driver)
+            setUserVersion(driver, CookingDatabase.Schema.version)
+            println("Database created successfully")
             return driver
         }
 
@@ -37,6 +41,7 @@ actual class DatabaseDriverFactory actual constructor(private val config: Driver
             println("Attempting to apply all migrations from 0 to $targetVersion...")
             try {
                 CookingDatabase.Schema.migrate(driver, 0, targetVersion)
+                setUserVersion(driver, targetVersion)
                 println("Migration successful: 0 → $targetVersion")
             } catch (e: Exception) {
                 // Migration failed - this is critical and should not be silently ignored
@@ -56,6 +61,7 @@ actual class DatabaseDriverFactory actual constructor(private val config: Driver
             println("Migrating database from version $currentVersion to $targetVersion...")
             try {
                 CookingDatabase.Schema.migrate(driver, currentVersion, targetVersion)
+                setUserVersion(driver, targetVersion)
                 println("Migration successful: $currentVersion → $targetVersion")
             } catch (e: Exception) {
                 System.err.println("CRITICAL: Database migration failed!")
@@ -94,5 +100,13 @@ actual class DatabaseDriverFactory actual constructor(private val config: Driver
             parameters = 0
         )
         return result.value
+    }
+
+    private fun setUserVersion(driver: SqlDriver, version: Long) {
+        driver.execute(
+            identifier = null,
+            sql = "PRAGMA user_version = $version;",
+            parameters = 0
+        )
     }
 }
