@@ -66,4 +66,12 @@ class DbRecipeRepository(
         return db.recipesQueries.isIngredientAssigned(recipeId, ingredientId)
             .executeAsOne()
     }
+
+    override suspend fun updateIngredientQuantity(recipeId: String, ingredientId: String, quantityId: String?) {
+        db.recipesQueries.updateIngredientQuantity(
+            quantity_id = quantityId,
+            recipe_id = recipeId,
+            ingredient_id = ingredientId
+        )
+    }
 }

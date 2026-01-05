@@ -19,12 +19,14 @@ import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
+import com.timothymarias.cookingapp.shared.presentation.unit.UnitStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeDetailScreen(
     recipeStore: RecipeStore,
-    ingredientStore: IngredientStore
+    ingredientStore: IngredientStore,
+    unitStore: UnitStore
 ) {
     val recipeState by recipeStore.state.collectAsState()
     val selectedRecipeId = recipeState.selectedRecipeId ?: return

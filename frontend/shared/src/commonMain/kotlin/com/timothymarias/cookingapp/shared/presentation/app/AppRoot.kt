@@ -23,13 +23,15 @@ import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
 import com.timothymarias.cookingapp.shared.presentation.recipe.detail.RecipeDetailScreen
 import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
 import com.timothymarias.cookingapp.shared.presentation.recipe.list.RecipeListScreen
+import com.timothymarias.cookingapp.shared.presentation.unit.UnitStore
 
 @Composable
 fun AppRoot(
     appState: AppState,
     onScreenSelected: (Screen) -> Unit,
     recipeStore: RecipeStore,
-    ingredientStore: IngredientStore
+    ingredientStore: IngredientStore,
+    unitStore: UnitStore
 ) {
     val recipeState by recipeStore.state.collectAsState()
     val ingredientState by ingredientStore.state.collectAsState()
@@ -56,7 +58,7 @@ fun AppRoot(
             when (appState.currentScreen) {
                 Screen.RecipeList -> {
                     if (recipeState.selectedRecipeId != null) {
-                        RecipeDetailScreen(recipeStore, ingredientStore)
+                        RecipeDetailScreen(recipeStore, ingredientStore, unitStore)
                     } else {
                         RecipeListScreen(recipeStore)
                     }

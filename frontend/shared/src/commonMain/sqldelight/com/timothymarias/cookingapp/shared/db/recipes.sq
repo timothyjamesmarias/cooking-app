@@ -48,3 +48,23 @@ SELECT EXISTS (
     SELECT 1 FROM recipe_ingredients
     WHERE recipe_id = ? AND ingredient_id = ?
 );
+
+-- Update quantity for a recipe ingredient
+updateIngredientQuantity:
+UPDATE recipe_ingredients
+SET quantity_id = ?
+WHERE recipe_id = ? AND ingredient_id = ?;
+
+-- Select ingredients with their quantities (NULL if no quantity set)
+selectIngredientsWithQuantities:
+SELECT
+    i.local_id AS ingredient_id,
+    i.name AS ingredient_name,
+    q.local_id AS quantity_id,
+    q.amount,
+    q.unit_id
+FROM ingredients i
+INNER JOIN recipe_ingredients ri ON i.local_id = ri.ingredient_id
+LEFT JOIN quantities q ON ri.quantity_id = q.local_id
+WHERE ri.recipe_id = ?
+ORDER BY i.name;

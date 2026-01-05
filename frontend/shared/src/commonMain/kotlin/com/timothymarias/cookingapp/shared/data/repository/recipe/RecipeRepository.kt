@@ -21,4 +21,5 @@ interface RecipeRepository {
     suspend fun assignIngredient(recipeId: String, ingredientId: String)
     suspend fun removeIngredient(recipeId: String, ingredientId: String)
     suspend fun isIngredientAssigned(recipeId: String, ingredientId: String): Boolean
+    suspend fun updateIngredientQuantity(recipeId: String, ingredientId: String, quantityId: String?)
 }

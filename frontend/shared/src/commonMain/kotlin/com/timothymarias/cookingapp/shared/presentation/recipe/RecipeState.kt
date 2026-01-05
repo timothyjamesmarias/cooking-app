@@ -14,4 +14,6 @@ data class RecipeState(
     val assignedIngredientIds: Set<String> = emptySet(),
     val selectedRecipeId: String? = null, // For recipe detail screen
     val isEditMode: Boolean = false, // For recipe detail screen edit mode
+    // Quantity editing state
+    val editingQuantityIngredientId: String? = null, // Which ingredient's quantity is being edited
 )

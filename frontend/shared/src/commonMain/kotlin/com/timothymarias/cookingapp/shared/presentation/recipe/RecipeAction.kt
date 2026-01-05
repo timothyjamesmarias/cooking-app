@@ -15,4 +15,9 @@ sealed interface RecipeAction {
     data object EnterEditMode : RecipeAction
     data object ExitEditMode : RecipeAction
     data class ViewRecipeDetailInEditMode(val id: String): RecipeAction
+    // Quantity editing actions
+    data class OpenQuantityEditor(val ingredientId: String): RecipeAction
+    data object CloseQuantityEditor : RecipeAction
+    data class SaveQuantity(val recipeId: String, val ingredientId: String, val amount: Double, val unitId: String): RecipeAction
+    data class RemoveQuantity(val recipeId: String, val ingredientId: String): RecipeAction
 }
