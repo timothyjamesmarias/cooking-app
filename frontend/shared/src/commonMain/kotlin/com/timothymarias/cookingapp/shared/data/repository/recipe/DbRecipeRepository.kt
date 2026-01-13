@@ -74,4 +74,18 @@ class DbRecipeRepository(
             ingredient_id = ingredientId
         )
     }
+
+    override suspend fun getIngredientsWithQuantities(recipeId: String): List<IngredientWithQuantity> {
+        return db.recipesQueries.selectIngredientsWithQuantities(recipeId)
+            .executeAsList()
+            .map {
+                IngredientWithQuantity(
+                    ingredientId = it.ingredient_id,
+                    ingredientName = it.ingredient_name,
+                    quantityId = it.quantity_id,
+                    amount = it.amount,
+                    unitId = it.unit_id
+                )
+            }
+    }
 }

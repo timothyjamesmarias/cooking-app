@@ -3,6 +3,14 @@ package com.timothymarias.cookingapp.shared.presentation.recipe
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 
+/**
+ * Represents quantity information for an ingredient in a recipe.
+ */
+data class QuantityInfo(
+    val amount: Double,
+    val unitId: String
+)
+
 data class RecipeState(
     val items: List<Recipe> = emptyList(),
     val query: String = "",
@@ -16,4 +24,6 @@ data class RecipeState(
     val isEditMode: Boolean = false, // For recipe detail screen edit mode
     // Quantity editing state
     val editingQuantityIngredientId: String? = null, // Which ingredient's quantity is being edited
+    // Ingredient quantities: maps ingredient ID to quantity info (null if no quantity set)
+    val ingredientQuantities: Map<String, QuantityInfo?> = emptyMap()
 )

@@ -77,6 +77,7 @@ fun RecipeDetailScreen(
                     isEditMode = isEditMode,
                     recipeStore = recipeStore,
                     ingredientStore = ingredientStore,
+                    unitStore = unitStore,
                     recipeState = recipeState
                 )
             }
@@ -222,6 +223,7 @@ private fun IngredientsSection(
     isEditMode: Boolean,
     recipeStore: RecipeStore,
     ingredientStore: IngredientStore,
+    unitStore: UnitStore,
     recipeState: RecipeState
 ) {
     var showAssignDialog by remember { mutableStateOf(false) }
@@ -247,6 +249,7 @@ private fun IngredientsSection(
                     recipeId = recipeId,
                     recipeState = recipeState,
                     ingredientStore = ingredientStore,
+                    unitStore = unitStore,
                     recipeStore = recipeStore
                 )
 
@@ -274,7 +277,8 @@ private fun IngredientsSection(
 
             IngredientsViewList(
                 recipeState = recipeState,
-                ingredientStore = ingredientStore
+                ingredientStore = ingredientStore,
+                unitStore = unitStore
             )
         }
     }
@@ -306,8 +310,11 @@ private fun IngredientsSectionHeader(
 @Composable
 private fun IngredientsViewList(
     recipeState: RecipeState,
-    ingredientStore: IngredientStore
+    ingredientStore: IngredientStore,
+    unitStore: UnitStore
 ) {
+    val unitState by unitStore.state.collectAsState()
+
     if (recipeState.assignedIngredientIds.isEmpty()) {
         Text(
             text = "No ingredients added yet",
@@ -325,8 +332,18 @@ private fun IngredientsViewList(
             val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
 
             ingredient?.let {
+                val quantityInfo = recipeState.ingredientQuantities[ingredientId]
+                val unit = quantityInfo?.let { info ->
+                    unitState.items.firstOrNull { unit -> unit.localId == info.unitId }
+                }
+                val ingredientText = if (quantityInfo != null && unit != null) {
+                    "• ${quantityInfo.amount} ${unit.symbol} ${it.name}"
+                } else {
+                    "• ${it.name}"
+                }
+
                 Text(
-                    text = "• ${it.name}",
+                    text = ingredientText,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -339,8 +356,10 @@ private fun IngredientsEditList(
     recipeId: String,
     recipeState: RecipeState,
     ingredientStore: IngredientStore,
+    unitStore: UnitStore,
     recipeStore: RecipeStore
 ) {
+    val unitState by unitStore.state.collectAsState()
     if (recipeState.assignedIngredientIds.isEmpty()) {
         Text(
             text = "No ingredients added yet",
@@ -358,9 +377,19 @@ private fun IngredientsEditList(
             val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
 
             ingredient?.let {
+                val quantityInfo = recipeState.ingredientQuantities[ingredientId]
+                val unit = quantityInfo?.let { info ->
+                    unitState.items.firstOrNull { it.localId == info.unitId }
+                }
+                val supportingText = if (quantityInfo != null && unit != null) {
+                    "${quantityInfo.amount} ${unit.symbol}"
+                } else {
+                    "Tap edit to set quantity"
+                }
+
                 ListItem(
                     headlineContent = { Text(it.name) },
-                    supportingContent = { Text("Tap edit to set quantity", style = MaterialTheme.typography.bodySmall) },
+                    supportingContent = { Text(supportingText, style = MaterialTheme.typography.bodySmall) },
                     trailingContent = {
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             // Edit quantity icon

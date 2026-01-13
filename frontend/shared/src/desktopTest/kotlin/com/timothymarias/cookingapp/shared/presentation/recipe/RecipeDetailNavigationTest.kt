@@ -1,5 +1,6 @@
 package com.timothymarias.cookingapp.shared.presentation.recipe
 
+import com.timothymarias.cookingapp.shared.data.repository.recipe.IngredientWithQuantity
 import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
 import com.timothymarias.cookingapp.shared.data.repository.quantity.QuantityRepository
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
@@ -278,6 +279,18 @@ private class FakeRecipeRepository : RecipeRepository {
     override suspend fun isIngredientAssigned(recipeId: String, ingredientId: String): Boolean = false
 
     override suspend fun updateIngredientQuantity(recipeId: String, ingredientId: String, quantityId: String?) {}
+
+    override suspend fun getIngredientsWithQuantities(recipeId: String): List<IngredientWithQuantity> {
+        return ingredientsByRecipe[recipeId]?.map { ingredient ->
+            IngredientWithQuantity(
+                ingredientId = ingredient.localId,
+                ingredientName = ingredient.name,
+                quantityId = null,
+                amount = null,
+                unitId = null
+            )
+        } ?: emptyList()
+    }
 }
 
 /**

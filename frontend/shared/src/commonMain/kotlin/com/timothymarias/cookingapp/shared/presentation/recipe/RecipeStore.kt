@@ -71,12 +71,38 @@ class RecipeStore(
                 _state.update { it.copy(managingIngredientsId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet()) }
             }
             is RecipeAction.ViewRecipeDetail -> scope.launch(ioDispatcher) {
-                val assigned = repo.getIngredients(action.id)
-                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet(), isEditMode = false) }
+                val ingredientsWithQuantities = repo.getIngredientsWithQuantities(action.id)
+                val assignedIds = ingredientsWithQuantities.map { it.ingredientId }.toSet()
+                val quantities = ingredientsWithQuantities.associate { ing ->
+                    ing.ingredientId to if (ing.amount != null && ing.unitId != null) {
+                        QuantityInfo(amount = ing.amount, unitId = ing.unitId)
+                    } else null
+                }
+                _state.update {
+                    it.copy(
+                        selectedRecipeId = action.id,
+                        assignedIngredientIds = assignedIds,
+                        ingredientQuantities = quantities,
+                        isEditMode = false
+                    )
+                }
             }
             is RecipeAction.ViewRecipeDetailInEditMode -> scope.launch(ioDispatcher) {
-                val assigned = repo.getIngredients(action.id)
-                _state.update { it.copy(selectedRecipeId = action.id, assignedIngredientIds = assigned.map { it.localId }.toSet(), isEditMode = true) }
+                val ingredientsWithQuantities = repo.getIngredientsWithQuantities(action.id)
+                val assignedIds = ingredientsWithQuantities.map { it.ingredientId }.toSet()
+                val quantities = ingredientsWithQuantities.associate { ing ->
+                    ing.ingredientId to if (ing.amount != null && ing.unitId != null) {
+                        QuantityInfo(amount = ing.amount, unitId = ing.unitId)
+                    } else null
+                }
+                _state.update {
+                    it.copy(
+                        selectedRecipeId = action.id,
+                        assignedIngredientIds = assignedIds,
+                        ingredientQuantities = quantities,
+                        isEditMode = true
+                    )
+                }
             }
             RecipeAction.CloseRecipeDetail -> _state.update { it.copy(selectedRecipeId = null, assignedIngredientIds = emptySet(), isEditMode = false) }
             // Quantity editing actions
@@ -98,8 +124,22 @@ class RecipeStore(
                         ingredientId = action.ingredientId,
                         quantityId = savedQuantity.localId
                     )
-                }.onSuccess {
-                    _state.update { it.copy(editingQuantityIngredientId = null) }
+
+                    // Reload quantities to refresh UI
+                    val ingredientsWithQuantities = repo.getIngredientsWithQuantities(action.recipeId)
+                    val quantities = ingredientsWithQuantities.associate { ing ->
+                        ing.ingredientId to if (ing.amount != null && ing.unitId != null) {
+                            QuantityInfo(amount = ing.amount, unitId = ing.unitId)
+                        } else null
+                    }
+                    quantities
+                }.onSuccess { quantities ->
+                    _state.update {
+                        it.copy(
+                            ingredientQuantities = quantities,
+                            editingQuantityIngredientId = null
+                        )
+                    }
                 }.onFailure { e ->
                     _state.update { it.copy(error = e.message) }
                 }
@@ -112,8 +152,22 @@ class RecipeStore(
                         ingredientId = action.ingredientId,
                         quantityId = null
                     )
-                }.onSuccess {
-                    _state.update { it.copy(editingQuantityIngredientId = null) }
+
+                    // Reload quantities to refresh UI
+                    val ingredientsWithQuantities = repo.getIngredientsWithQuantities(action.recipeId)
+                    val quantities = ingredientsWithQuantities.associate { ing ->
+                        ing.ingredientId to if (ing.amount != null && ing.unitId != null) {
+                            QuantityInfo(amount = ing.amount, unitId = ing.unitId)
+                        } else null
+                    }
+                    quantities
+                }.onSuccess { quantities ->
+                    _state.update {
+                        it.copy(
+                            ingredientQuantities = quantities,
+                            editingQuantityIngredientId = null
+                        )
+                    }
                 }.onFailure { e ->
                     _state.update { it.copy(error = e.message) }
                 }
