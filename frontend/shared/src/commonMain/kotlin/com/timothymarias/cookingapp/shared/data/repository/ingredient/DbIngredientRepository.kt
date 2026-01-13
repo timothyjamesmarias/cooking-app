@@ -34,6 +34,11 @@ data class DbIngredientRepository(
             .mapToList(dispatcher)
             .map { rows -> rows.map { Ingredient(localId = it.local_id, name = it.name) } }
 
+    override suspend fun getAll(): List<Ingredient> =
+        db.ingredientsQueries.selectAll()
+            .executeAsList()
+            .map { Ingredient(localId = it.local_id, name = it.name) }
+
     override suspend fun create(Ingredient: Ingredient): Ingredient {
         val newLocalId = Ingredient.localId.takeIf { it.isNotBlank() } ?: UUID.generateUUID().toString()
         db.ingredientsQueries.insertIngredient(newLocalId, Ingredient.name)

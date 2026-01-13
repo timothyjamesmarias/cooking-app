@@ -1,0 +1,8 @@
+-- Add quantity_id column to recipe_ingredients junction table
+-- NULL for now to maintain compatibility with existing data
+-- Future: Require quantities for all recipe ingredients
+ALTER TABLE recipe_ingredients
+ADD COLUMN quantity_id TEXT;
+
+-- Index for lookups by quantity (e.g., finding which recipe uses a specific quantity)
+CREATE INDEX idx_recipe_ingredients_quantity ON recipe_ingredients(quantity_id);

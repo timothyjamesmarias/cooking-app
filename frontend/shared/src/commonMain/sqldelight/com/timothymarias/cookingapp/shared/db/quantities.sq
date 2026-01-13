@@ -1,0 +1,46 @@
+-- Query to select all quantities
+selectAll:
+SELECT local_id, amount, unit_id
+FROM quantities;
+
+-- Insert a quantity
+insertQuantity:
+INSERT INTO quantities(local_id, amount, unit_id)
+VALUES (?, ?, ?);
+
+-- Select by id
+selectById:
+SELECT local_id, amount, unit_id
+FROM quantities
+WHERE local_id = ?;
+
+-- Update quantity by id
+updateQuantity:
+UPDATE quantities
+SET amount = ?, unit_id = ?
+WHERE local_id = ?;
+
+-- Delete by id
+deleteById:
+DELETE FROM quantities
+WHERE local_id = ?;
+
+-- Select quantities by unit_id (find all quantities using a specific unit)
+selectByUnitId:
+SELECT local_id, amount, unit_id
+FROM quantities
+WHERE unit_id = ?;
+
+-- Select quantity with unit details (JOIN for displaying quantity + unit info)
+selectByIdWithUnit:
+SELECT
+    q.local_id AS quantity_id,
+    q.amount,
+    u.local_id AS unit_id,
+    u.name AS unit_name,
+    u.symbol AS unit_symbol,
+    u.measurement_type,
+    u.base_conversion_factor
+FROM quantities q
+INNER JOIN units u ON q.unit_id = u.local_id
+WHERE q.local_id = ?;

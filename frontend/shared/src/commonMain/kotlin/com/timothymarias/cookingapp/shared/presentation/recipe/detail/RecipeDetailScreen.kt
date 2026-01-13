@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,14 +20,20 @@ import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientAction
 import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.AssignIngredientsDialog
+import com.timothymarias.cookingapp.shared.presentation.recipe.dialogs.EditIngredientQuantityDialog
+import com.timothymarias.cookingapp.shared.presentation.unit.UnitStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeDetailScreen(
     recipeStore: RecipeStore,
-    ingredientStore: IngredientStore
+    ingredientStore: IngredientStore,
+    unitStore: UnitStore
 ) {
     val recipeState by recipeStore.state.collectAsState()
+    val unitState by unitStore.state.collectAsState()
+    val ingredientState by ingredientStore.state.collectAsState()
+
     val selectedRecipeId = recipeState.selectedRecipeId ?: return
     val recipe = recipeState.items.firstOrNull { it.localId == selectedRecipeId } ?: return
     val isEditMode = recipeState.isEditMode
@@ -70,6 +77,7 @@ fun RecipeDetailScreen(
                     isEditMode = isEditMode,
                     recipeStore = recipeStore,
                     ingredientStore = ingredientStore,
+                    unitStore = unitStore,
                     recipeState = recipeState
                 )
             }
@@ -93,6 +101,41 @@ fun RecipeDetailScreen(
                     isEditMode = isEditMode
                 )
             }
+        }
+    }
+
+    // Edit Quantity Dialog
+    recipeState.editingQuantityIngredientId?.let { ingredientId ->
+        val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
+
+        ingredient?.let {
+            EditIngredientQuantityDialog(
+                recipeId = selectedRecipeId,
+                ingredientId = ingredientId,
+                ingredientName = ingredient.name,
+                unitState = unitState,
+                onSave = { amount, unitId ->
+                    recipeStore.dispatch(
+                        RecipeAction.SaveQuantity(
+                            recipeId = selectedRecipeId,
+                            ingredientId = ingredientId,
+                            amount = amount,
+                            unitId = unitId
+                        )
+                    )
+                },
+                onClear = {
+                    recipeStore.dispatch(
+                        RecipeAction.RemoveQuantity(
+                            recipeId = selectedRecipeId,
+                            ingredientId = ingredientId
+                        )
+                    )
+                },
+                onDismiss = {
+                    recipeStore.dispatch(RecipeAction.CloseQuantityEditor)
+                }
+            )
         }
     }
 }
@@ -180,6 +223,7 @@ private fun IngredientsSection(
     isEditMode: Boolean,
     recipeStore: RecipeStore,
     ingredientStore: IngredientStore,
+    unitStore: UnitStore,
     recipeState: RecipeState
 ) {
     var showAssignDialog by remember { mutableStateOf(false) }
@@ -205,6 +249,7 @@ private fun IngredientsSection(
                     recipeId = recipeId,
                     recipeState = recipeState,
                     ingredientStore = ingredientStore,
+                    unitStore = unitStore,
                     recipeStore = recipeStore
                 )
 
@@ -232,7 +277,8 @@ private fun IngredientsSection(
 
             IngredientsViewList(
                 recipeState = recipeState,
-                ingredientStore = ingredientStore
+                ingredientStore = ingredientStore,
+                unitStore = unitStore
             )
         }
     }
@@ -264,8 +310,11 @@ private fun IngredientsSectionHeader(
 @Composable
 private fun IngredientsViewList(
     recipeState: RecipeState,
-    ingredientStore: IngredientStore
+    ingredientStore: IngredientStore,
+    unitStore: UnitStore
 ) {
+    val unitState by unitStore.state.collectAsState()
+
     if (recipeState.assignedIngredientIds.isEmpty()) {
         Text(
             text = "No ingredients added yet",
@@ -283,8 +332,18 @@ private fun IngredientsViewList(
             val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
 
             ingredient?.let {
+                val quantityInfo = recipeState.ingredientQuantities[ingredientId]
+                val unit = quantityInfo?.let { info ->
+                    unitState.items.firstOrNull { unit -> unit.localId == info.unitId }
+                }
+                val ingredientText = if (quantityInfo != null && unit != null) {
+                    "• ${quantityInfo.amount} ${unit.symbol} ${it.name}"
+                } else {
+                    "• ${it.name}"
+                }
+
                 Text(
-                    text = "• ${it.name}",
+                    text = ingredientText,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -297,8 +356,10 @@ private fun IngredientsEditList(
     recipeId: String,
     recipeState: RecipeState,
     ingredientStore: IngredientStore,
+    unitStore: UnitStore,
     recipeStore: RecipeStore
 ) {
+    val unitState by unitStore.state.collectAsState()
     if (recipeState.assignedIngredientIds.isEmpty()) {
         Text(
             text = "No ingredients added yet",
@@ -316,15 +377,37 @@ private fun IngredientsEditList(
             val ingredient = ingredientState.items.firstOrNull { it.localId == ingredientId }
 
             ingredient?.let {
+                val quantityInfo = recipeState.ingredientQuantities[ingredientId]
+                val unit = quantityInfo?.let { info ->
+                    unitState.items.firstOrNull { it.localId == info.unitId }
+                }
+                val supportingText = if (quantityInfo != null && unit != null) {
+                    "${quantityInfo.amount} ${unit.symbol}"
+                } else {
+                    "Tap edit to set quantity"
+                }
+
                 ListItem(
                     headlineContent = { Text(it.name) },
+                    supportingContent = { Text(supportingText, style = MaterialTheme.typography.bodySmall) },
                     trailingContent = {
-                        IconButton(
-                            onClick = {
-                                recipeStore.dispatch(RecipeAction.RemoveIngredient(recipeId, ingredientId))
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // Edit quantity icon
+                            IconButton(
+                                onClick = {
+                                    recipeStore.dispatch(RecipeAction.OpenQuantityEditor(ingredientId))
+                                }
+                            ) {
+                                Icon(Icons.Outlined.Edit, contentDescription = "Edit Quantity")
                             }
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove")
+                            // Remove ingredient icon
+                            IconButton(
+                                onClick = {
+                                    recipeStore.dispatch(RecipeAction.RemoveIngredient(recipeId, ingredientId))
+                                }
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = "Remove")
+                            }
                         }
                     }
                 )

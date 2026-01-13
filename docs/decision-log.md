@@ -1,0 +1,23 @@
+# Decision Log
+
+- 10/12/2025
+  - Beginning of project
+  - Tech stack
+    - KMP for front end
+      - iOS, Desktop, Android
+      - used this because I want to learn the technology lol
+      - decided to skip web because it's experimental and I don't really want or see a reason to make this a web app
+      - SQLDelight with SQLite because it makes things easy
+        - I can model the data on the front and back end very similarly
+    - Spring boot for back end
+      - Kotlin so I can use one language
+      - Flyway for migrations because it's the best
+      - JPA because I'm lazy
+    - I'm choosing to have this app be offline-first, but I'm including a back end because I want to be able to have this app sync across devices as well as to be able to have more flexibility in the features I can provide.
+    - Sometimes having a server is handy
+    - I also want to learn how to make a sync engine
+- 10/28/25
+  - Basic recipe CRUD on back end
+  - I think at the time, I had a different vision for how the app should work, so that's why I made the models on the back end lol
+- 12/25/25
+  - 

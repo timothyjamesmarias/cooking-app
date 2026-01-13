@@ -7,14 +7,18 @@ import com.timothymarias.cookingapp.shared.presentation.app.AppState
 import com.timothymarias.cookingapp.shared.presentation.app.Screen
 import com.timothymarias.cookingapp.shared.presentation.ingredient.IngredientStore
 import com.timothymarias.cookingapp.shared.presentation.recipe.RecipeStore
+import com.timothymarias.cookingapp.shared.presentation.unit.UnitStore
 
 @Composable
 fun App() {
     val recipeRepo = remember { ServiceLocator.recipeRepository }
     val ingredientRepo = remember { ServiceLocator.ingredientRepository }
+    val unitRepo = remember { ServiceLocator.unitRepository }
+    val quantityRepo = remember { ServiceLocator.quantityRepository }
 
-    val recipeStore = remember { RecipeStore(recipeRepo) }
+    val recipeStore = remember { RecipeStore(recipeRepo, quantityRepo) }
     val ingredientStore = remember { IngredientStore(ingredientRepo) }
+    val unitStore = remember { UnitStore(unitRepo) }
 
     var appState by remember { mutableStateOf(AppState()) }
 
@@ -25,7 +29,8 @@ fun App() {
                 appState = appState.copy(currentScreen = screen)
             },
             recipeStore = recipeStore,
-            ingredientStore = ingredientStore
+            ingredientStore = ingredientStore,
+            unitStore = unitStore
         )
     }
 }

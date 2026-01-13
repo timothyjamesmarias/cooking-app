@@ -1,0 +1,11 @@
+-- Quantities table for measured amounts
+-- Each quantity has an amount and references a unit
+CREATE TABLE quantities (
+  local_id TEXT NOT NULL PRIMARY KEY,
+  amount REAL NOT NULL,
+  unit_id TEXT NOT NULL,
+  FOREIGN KEY (unit_id) REFERENCES units(local_id) ON DELETE CASCADE
+);
+
+-- Index for lookups by unit (e.g., finding all quantities using "cups")
+CREATE INDEX idx_quantities_unit ON quantities(unit_id);
