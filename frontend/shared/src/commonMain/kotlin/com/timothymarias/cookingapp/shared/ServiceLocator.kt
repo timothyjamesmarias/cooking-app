@@ -63,6 +63,7 @@ object ServiceLocator {
                 // Development build: seed test data
                 println("Development build detected - seeding test data")
                 DatabaseSeeder.seedDevelopment(
+                    database = database,
                     recipeRepository = recipeRepository,
                     ingredientRepository = ingredientRepository,
                     unitRepository = unitRepository
@@ -70,7 +71,10 @@ object ServiceLocator {
             } else {
                 // Production build: only seed essential reference data
                 println("Production build - seeding reference data only")
-                DatabaseSeeder.seedProduction(unitRepository)
+                DatabaseSeeder.seedProduction(
+                    database = database,
+                    unitRepository = unitRepository
+                )
             }
         }
 

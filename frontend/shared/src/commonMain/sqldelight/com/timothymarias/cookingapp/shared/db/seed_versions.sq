@@ -1,0 +1,17 @@
+-- Check if a seed has been run
+hasSeedRun:
+SELECT EXISTS(
+    SELECT 1 FROM seed_versions
+    WHERE seed_name = ? AND version >= ?
+);
+
+-- Record that a seed has been run
+recordSeed:
+INSERT OR REPLACE INTO seed_versions (seed_name, version, executed_at)
+VALUES (?, ?, ?);
+
+-- Get all seed versions
+selectAll:
+SELECT seed_name, version, executed_at
+FROM seed_versions
+ORDER BY executed_at DESC;
