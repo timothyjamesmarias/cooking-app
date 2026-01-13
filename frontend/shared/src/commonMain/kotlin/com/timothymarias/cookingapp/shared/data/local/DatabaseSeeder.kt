@@ -3,10 +3,12 @@ package com.timothymarias.cookingapp.shared.data.local
 import com.timothymarias.cookingapp.shared.data.repository.ingredient.IngredientRepository
 import com.timothymarias.cookingapp.shared.data.repository.recipe.RecipeRepository
 import com.timothymarias.cookingapp.shared.data.repository.unit.UnitRepository
+import com.timothymarias.cookingapp.shared.db.CookingDatabase
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.MeasurementType
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import com.timothymarias.cookingapp.shared.domain.model.Unit
+import kotlinx.datetime.Clock
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
@@ -20,17 +22,25 @@ import kotlinx.uuid.generateUUID
  * - Sample recipes
  * - Common ingredients
  *
+ * Uses seed version tracking to prevent duplicate seeding.
  * Keeps seed data in code for type safety and version control.
  * See BuildConfig.isDebug for environment detection.
  */
 object DatabaseSeeder {
+    // Seed versions - increment these when seed data changes
+    private const val UNITS_SEED_VERSION = 1
+    private const val INGREDIENTS_SEED_VERSION = 1
+    private const val RECIPES_SEED_VERSION = 1
 
     /**
      * Seeds production data that should exist in all builds.
      * Call this on app initialization regardless of environment.
      */
-    suspend fun seedProduction(unitRepository: UnitRepository) {
-        seedUnitsIfEmpty(unitRepository)
+    suspend fun seedProduction(
+        database: CookingDatabase,
+        unitRepository: UnitRepository
+    ) {
+        seedUnitsIfNotRun(database, unitRepository)
     }
 
     /**
@@ -38,61 +48,98 @@ object DatabaseSeeder {
      * Only call this in debug builds (check BuildConfig.isDebug).
      */
     suspend fun seedDevelopment(
+        database: CookingDatabase,
         recipeRepository: RecipeRepository,
         ingredientRepository: IngredientRepository,
         unitRepository: UnitRepository
     ) {
         // First, ensure production data is seeded
-        seedProduction(unitRepository)
+        seedProduction(database, unitRepository)
 
         // Then seed dev-only data
-        seedTestIngredientsIfEmpty(ingredientRepository)
-        seedTestRecipesIfEmpty(recipeRepository, ingredientRepository)
+        seedTestIngredientsIfNotRun(database, ingredientRepository)
+        seedTestRecipesIfNotRun(database, recipeRepository, ingredientRepository)
     }
 
     /**
-     * Seeds common units if the units table is empty.
-     * Safe to call multiple times; only inserts if table is empty.
+     * Seeds common units using version tracking to prevent duplicates.
+     * Safe to call multiple times; checks seed_versions table.
      */
-    private suspend fun seedUnitsIfEmpty(unitRepository: UnitRepository): Boolean {
-        val existing = unitRepository.getAll()
-        if (existing.isNotEmpty()) {
+    private suspend fun seedUnitsIfNotRun(
+        database: CookingDatabase,
+        unitRepository: UnitRepository
+    ): Boolean {
+        // Check if this seed version has already run
+        val hasRun = database.seed_versionsQueries.hasSeedRun(
+            seed_name = "units",
+            version = UNITS_SEED_VERSION.toLong()
+        ).executeAsOne()
+
+        if (hasRun) {
             return false // Already seeded
         }
 
+        // Perform seeding
         for (unit in commonUnits) {
             unitRepository.create(unit)
         }
+
+        // Record that this seed has run
+        database.seed_versionsQueries.recordSeed(
+            seed_name = "units",
+            version = UNITS_SEED_VERSION.toLong(),
+            executed_at = Clock.System.now().toEpochMilliseconds()
+        )
+
         return true
     }
 
     /**
-     * Seeds common ingredients for testing if the table is empty.
+     * Seeds test ingredients using version tracking.
      */
-    private suspend fun seedTestIngredientsIfEmpty(ingredientRepository: IngredientRepository): Boolean {
-        val existing = ingredientRepository.getAll()
-        if (existing.isNotEmpty()) {
+    private suspend fun seedTestIngredientsIfNotRun(
+        database: CookingDatabase,
+        ingredientRepository: IngredientRepository
+    ): Boolean {
+        val hasRun = database.seed_versionsQueries.hasSeedRun(
+            seed_name = "test_ingredients",
+            version = INGREDIENTS_SEED_VERSION.toLong()
+        ).executeAsOne()
+
+        if (hasRun) {
             return false
         }
 
         for (ingredient in testIngredients) {
             ingredientRepository.create(ingredient)
         }
+
+        database.seed_versionsQueries.recordSeed(
+            seed_name = "test_ingredients",
+            version = INGREDIENTS_SEED_VERSION.toLong(),
+            executed_at = Clock.System.now().toEpochMilliseconds()
+        )
+
         return true
     }
 
     /**
-     * Seeds sample recipes for testing if the table is empty.
+     * Seeds test recipes using version tracking.
      * Assigns random ingredients to each recipe.
      */
-    private suspend fun seedTestRecipesIfEmpty(
+    private suspend fun seedTestRecipesIfNotRun(
+        database: CookingDatabase,
         recipeRepository: RecipeRepository,
         ingredientRepository: IngredientRepository
     ): Boolean {
-        // Simple check: if we already have recipes, skip
-        val existingRecipes = ingredientRepository.getAll()
-        // Note: For better check, we'd use recipeRepository, but getAll() isn't in the interface
-        // For now, we'll just attempt to create and rely on unique constraints
+        val hasRun = database.seed_versionsQueries.hasSeedRun(
+            seed_name = "test_recipes",
+            version = RECIPES_SEED_VERSION.toLong()
+        ).executeAsOne()
+
+        if (hasRun) {
+            return false
+        }
 
         val allIngredients = ingredientRepository.getAll()
         if (allIngredients.isEmpty()) {
@@ -109,6 +156,13 @@ object DatabaseSeeder {
                 recipeRepository.assignIngredient(created.localId, ingredient.localId)
             }
         }
+
+        database.seed_versionsQueries.recordSeed(
+            seed_name = "test_recipes",
+            version = RECIPES_SEED_VERSION.toLong(),
+            executed_at = Clock.System.now().toEpochMilliseconds()
+        )
+
         return true
     }
 

@@ -1,0 +1,7 @@
+-- Seed version tracking table
+-- Prevents duplicate seeding by tracking which seeds have run
+CREATE TABLE seed_versions (
+    seed_name TEXT NOT NULL PRIMARY KEY,
+    version INTEGER NOT NULL,
+    executed_at INTEGER NOT NULL  -- Unix timestamp
+);

@@ -20,4 +20,9 @@
   - Basic recipe CRUD on back end
   - I think at the time, I had a different vision for how the app should work, so that's why I made the models on the back end lol
 - 12/25/25
-  - 
+  - buncha shit, will fill in later, hater
+  - blah blah blah lorem ipsum, etc.
+- 1/12/26
+  - fixed the seeder by create a seed versions table
+  - this then checks the seed version to see if we actually need to run the seeder or not
+  - this prevents the seeder from running on the front end every time the application boots in a dev env
