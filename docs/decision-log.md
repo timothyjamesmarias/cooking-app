@@ -28,4 +28,23 @@
   - this prevents the seeder from running on the front end every time the application boots in a dev env
   - add the models in the back end to reflect the front end (since we fleshed out the front end db a few features down)
 - 1/13/26
-  - building the back end 
+  - build out the missing tables between the front and back ends needed in order to sync
+  - for the conflict resolution priority, I don't think there's a perfect way of resolving this to get the optimal result. We could either:
+  - prioritize maximum control and create our own VCS merge system, which is absolutely way too much for a user
+  - prioritize maximum convenience, so we have in-house decisions on how recipe conflicts are resolved, taken entirely out of the user's hands.
+    - I'm more in line with valuing the second one, though, I do think having the option of overriding might be useful. Let's say a conflict comes in between two devices. I still want to give the user some level of control, so I'm thinking along the lines of prompting them during a sync event, giving them the option to accept their version or the new version, or to dismiss altogether, prioritizing the newest version, whichever that may be.
+    - Later on, as we build user settings (much later down the line), we could allow for the user to customize how they want to manage this "dumb VCS"
+  - For frequency, I'm thinking we want to use that as a background job whenever the user boots the app. At least for the MVP feature, now that I'm thinking about this some more, we very well could have more options that the user could configure in settings.
+    - Perhaps we could build out the different possibilities (perhaps in either an enum or an interface) for the configuration, but then wait and build it out when we build out the settings system. I'm not too sure about that, but I'd like to start with the action of sync (perhaps in a sealed interface), and then load that in the background job for our mvp feature.
+  - I'd ideally like the user to have the highest precedence on the front end, but as I'm considering it more, I'm thinking the newest should have precedence, like I mentioned in point 1.
+    - That being said, if in the case a user decides to sync their own over the latest one, we'd need a way to track that to make "theirs" the highest priority. I'm not too sure about this one, though.
+  - I am a little worried that the higher the granularity, the more data we'd be using, but at the same time, if we keep all of the tracking on the back end, it won't matter, because postgres storage will never be a limiter like local db storage.
+  - As I'm thinking about it, we'd actually need to build out entire "families" or "networks" of associated devices, which could get us potentially in the realm of multitenancy, or at the very least, another very complex feature with data modeling. Let's postpone that for the meantime, and only worry about 1 client, 1 server for now.
+  - The sync engine:
+    - Fundamentally, the sync engine needs to resolve conflicts between what one database is saying, and what another is
+    - We want the user to be able to decide how these are handled, but we also have default values
+    - Decided to describe this state with an enum, same with the conflict state, since either of these can only be in one state at the same time
+    - When looking at entities, we only need to resolve the conflicts for those that have 
+      - the sync conflicts table to actually store all the problems
+      - the sync info that tells us what the problems actually are
+    - more shit to write out when I actually feel like it

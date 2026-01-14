@@ -1,0 +1,103 @@
+-- Sync tracking information for each entity
+-- Tracks sync state, versions, and conflict detection data
+
+-- Insert or update sync info for an entity
+upsertSyncInfo:
+INSERT OR REPLACE INTO sync_info(
+    entity_id,
+    entity_type,
+    server_id,
+    local_version,
+    last_modified,
+    checksum,
+    sync_status,
+    is_pinned
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Get sync info for a specific entity
+selectByEntityId:
+SELECT * FROM sync_info
+WHERE entity_id = ?;
+
+-- Get all dirty (modified) entities that need syncing
+selectDirtyEntities:
+SELECT * FROM sync_info
+WHERE sync_status = 'DIRTY'
+ORDER BY last_modified ASC;
+
+-- Get all entities with conflicts
+selectConflictedEntities:
+SELECT * FROM sync_info
+WHERE sync_status = 'CONFLICT'
+ORDER BY last_modified DESC;
+
+-- Mark entity as clean after successful sync
+markClean:
+UPDATE sync_info
+SET sync_status = 'CLEAN',
+    server_id = ?,
+    local_version = local_version + 1
+WHERE entity_id = ?;
+
+-- Mark entity as dirty when modified locally
+markDirty:
+UPDATE sync_info
+SET sync_status = 'DIRTY',
+    last_modified = ?,
+    checksum = ?,
+    local_version = local_version + 1
+WHERE entity_id = ?;
+
+-- Mark entity as having a conflict
+markConflicted:
+UPDATE sync_info
+SET sync_status = 'CONFLICT'
+WHERE entity_id = ?;
+
+-- Mark entity as syncing
+markSyncing:
+UPDATE sync_info
+SET sync_status = 'SYNCING'
+WHERE entity_id = ?;
+
+-- Mark entity as having an error
+markError:
+UPDATE sync_info
+SET sync_status = 'ERROR'
+WHERE entity_id = ?;
+
+-- Pin/unpin entity (user wants to keep their version)
+setPinned:
+UPDATE sync_info
+SET is_pinned = ?
+WHERE entity_id = ?;
+
+-- Get entities by type and status
+selectByTypeAndStatus:
+SELECT * FROM sync_info
+WHERE entity_type = ? AND sync_status = ?
+ORDER BY last_modified ASC;
+
+-- Count entities by status
+countByStatus:
+SELECT sync_status, COUNT(*) AS status_count
+FROM sync_info
+GROUP BY sync_status;
+
+-- Delete sync info (when entity is deleted)
+deleteByEntityId:
+DELETE FROM sync_info
+WHERE entity_id = ?;
+
+-- Initialize sync info for a new entity
+initializeSyncInfo:
+INSERT INTO sync_info(
+    entity_id,
+    entity_type,
+    server_id,
+    local_version,
+    last_modified,
+    checksum,
+    sync_status,
+    is_pinned
+) VALUES (?, ?, NULL, 1, ?, ?, 'DIRTY', 0);

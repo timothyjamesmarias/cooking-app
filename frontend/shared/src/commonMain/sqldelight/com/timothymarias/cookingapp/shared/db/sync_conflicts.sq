@@ -1,0 +1,57 @@
+-- Sync conflicts that need user resolution
+-- Stores both local and remote versions for comparison
+
+-- Insert a new conflict
+insertConflict:
+INSERT INTO sync_conflicts(
+    entity_id,
+    entity_type,
+    local_data,
+    remote_data,
+    local_timestamp,
+    remote_timestamp,
+    created_at
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Get all unresolved conflicts
+selectAll:
+SELECT * FROM sync_conflicts
+ORDER BY created_at DESC;
+
+-- Get conflict by ID
+selectById:
+SELECT * FROM sync_conflicts
+WHERE id = ?;
+
+-- Get conflicts for a specific entity
+selectByEntityId:
+SELECT * FROM sync_conflicts
+WHERE entity_id = ?
+ORDER BY created_at DESC;
+
+-- Get conflicts by entity type
+selectByEntityType:
+SELECT * FROM sync_conflicts
+WHERE entity_type = ?
+ORDER BY created_at DESC;
+
+-- Delete conflict after resolution
+deleteById:
+DELETE FROM sync_conflicts
+WHERE id = ?;
+
+-- Delete all conflicts for an entity
+deleteByEntityId:
+DELETE FROM sync_conflicts
+WHERE entity_id = ?;
+
+-- Count unresolved conflicts
+countConflicts:
+SELECT COUNT(*) FROM sync_conflicts;
+
+-- Check if entity has conflicts
+hasConflicts:
+SELECT EXISTS(
+    SELECT 1 FROM sync_conflicts
+    WHERE entity_id = ?
+);
