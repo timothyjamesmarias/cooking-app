@@ -1,14 +1,6 @@
 package com.timothymarias.cookingapp.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "recipes")
@@ -20,13 +12,27 @@ class Recipe(
     @Column(nullable = false)
     var name: String,
 
-    @ManyToMany
-    @JoinTable(
-        name = "recipe_ingredients",
-        joinColumns = [JoinColumn(name = "recipe_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "ingredient_id", referencedColumnName = "id")]
-    )
+    // For sync engine: store the frontend's local_id
+    @Column(name = "local_id", unique = true)
+    var localId: String? = null,
+
+    @OneToMany(mappedBy = "recipe", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf(),
+
+    // Helper property to maintain backward compatibility
+    @Transient
     var ingredients: MutableSet<Ingredient> = mutableSetOf()
+        get() = recipeIngredients.map { it.ingredient }.toMutableSet()
 ) {
-    constructor() : this(null, "", mutableSetOf())
+    constructor() : this(null, "", null, mutableSetOf())
+
+    // Helper methods for managing ingredients
+    fun addIngredient(ingredient: Ingredient, quantity: Quantity? = null) {
+        val recipeIngredient = RecipeIngredient(this, ingredient, quantity)
+        recipeIngredients.add(recipeIngredient)
+    }
+
+    fun removeIngredient(ingredient: Ingredient) {
+        recipeIngredients.removeIf { it.ingredient.id == ingredient.id }
+    }
 }

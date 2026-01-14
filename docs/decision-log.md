@@ -26,3 +26,6 @@
   - fixed the seeder by create a seed versions table
   - this then checks the seed version to see if we actually need to run the seeder or not
   - this prevents the seeder from running on the front end every time the application boots in a dev env
+  - add the models in the back end to reflect the front end (since we fleshed out the front end db a few features down)
+- 1/13/26
+  - building the back end 
