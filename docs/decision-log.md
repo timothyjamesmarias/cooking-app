@@ -47,4 +47,4 @@
     - When looking at entities, we only need to resolve the conflicts for those that have 
       - the sync conflicts table to actually store all the problems
       - the sync info that tells us what the problems actually are
-    - more shit to write out when I actually feel like it
+    - I had a whole conversation with claude about the implementation and why. I just had it write up a summary of the decisions and reasoning. See that doc lol.

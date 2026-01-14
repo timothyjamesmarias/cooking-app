@@ -1,8 +1,90 @@
 # Sync Engine Implementation Summary
 
-## What We Built
+## Introduction
 
-We've successfully implemented the foundation of an offline-first sync engine for your cooking app. Here's what was created:
+This document describes the sync engine implementation for the cooking app - a comprehensive solution for managing data synchronization between the offline-first frontend database (SQLDelight) and the backend server (PostgreSQL).
+
+The sync engine enables users to:
+- Work completely offline with full app functionality
+- Automatically sync changes when connected
+- Resolve conflicts intelligently when the same data is modified in multiple places
+- Maintain data consistency across devices (future capability)
+
+This implementation follows an event-tracking pattern with pragmatic conflict resolution, prioritizing user experience and data integrity while avoiding unnecessary complexity.
+
+## Design Rationale: Why It's Built This Way
+
+### 1. **Offline-First, Not Offline-Only**
+**Decision**: Frontend database (SQLDelight) is the source of truth, backend syncs opportunistically.
+
+**Why**:
+- Users can use the app anywhere without connectivity concerns
+- No loading spinners or failed requests during normal usage
+- Backend becomes a backup and sharing mechanism, not a dependency
+- Aligns with the app's personal tool philosophy
+
+### 2. **Entity-Level Tracking, Not Event Sourcing**
+**Decision**: Track entity states and versions rather than individual change events.
+
+**Why**:
+- Simpler to implement and debug
+- Lower storage overhead (no event accumulation)
+- Sufficient for recipe/cooking data (not collaborative real-time editing)
+- Easier conflict resolution (compare states, not event sequences)
+
+### 3. **Transparent Sync-Aware Wrappers**
+**Decision**: Wrap existing repositories rather than modifying them directly.
+
+**Why**:
+- No breaking changes to existing code
+- Clear separation of concerns (business logic vs sync logic)
+- Easy to disable sync by switching repository implementations
+- Testable in isolation
+
+### 4. **"Newest Wins" with User Override**
+**Decision**: Default to timestamp-based resolution but allow pinning.
+
+**Why**:
+- Works automatically 90% of the time without user intervention
+- Respects user intent when they explicitly choose a version
+- Simple mental model for users to understand
+- Avoids complex merge algorithms that could corrupt recipe data
+
+### 5. **Single Sync Endpoint Strategy**
+**Decision**: One POST /api/sync endpoint handles all entity types.
+
+**Why**:
+- Reduces network round trips (batch operations)
+- Simpler backend implementation
+- Easier to maintain consistency across entity types
+- Natural transaction boundary for related changes
+
+### 6. **Checksum-Based Integrity**
+**Decision**: Generate checksums for all entities to detect changes.
+
+**Why**:
+- Quick change detection without deep comparison
+- Catches unintended modifications
+- Helps identify true conflicts vs false positives
+- Lightweight compared to storing full history
+
+### 7. **Sealed Interfaces for Extensibility**
+**Decision**: Use sealed interfaces for sync actions and conflict resolutions.
+
+**Why**:
+- Type-safe exhaustive when expressions
+- Easy to add new sync triggers or resolution strategies
+- Compiler helps catch missing cases
+- Clean API surface for future features
+
+### 8. **Local-First IDs with Server Mapping**
+**Decision**: Use UUID strings locally, map to server IDs during sync.
+
+**Why**:
+- Can create entities offline without ID collisions
+- No need for complex ID reservation schemes
+- Server can maintain its own ID sequences
+- Clean separation between local and remote identity
 
 ### 1. Database Schema
 - **sync_info** table: Tracks sync state for each entity
