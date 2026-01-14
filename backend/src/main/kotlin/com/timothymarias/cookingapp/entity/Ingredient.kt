@@ -2,6 +2,7 @@ package com.timothymarias.cookingapp.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
+import java.time.Instant
 
 @Entity
 @Table(name = "ingredients")
@@ -17,14 +18,19 @@ class Ingredient(
     @Column(name = "local_id", unique = true)
     var localId: String? = null,
 
+    @Column(nullable = false)
+    var version: Int = 1,
+
+    @Column(name = "last_modified", nullable = false)
+    var lastModified: Instant = Instant.now(),
+
     @OneToMany(mappedBy = "ingredient")
     @JsonIgnoreProperties("ingredient")
-    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf(),
+    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf()
+) {
+    constructor() : this(null, "", null, 1, Instant.now(), mutableSetOf())
 
     // Helper property to maintain backward compatibility
-    @Transient
-    var recipes: MutableSet<Recipe> = mutableSetOf()
-        get() = recipeIngredients.map { it.recipe }.toMutableSet()
-) {
-    constructor() : this(null, "", null, mutableSetOf())
+    val recipes: MutableSet<Recipe>
+        get() = recipeIngredients.mapTo(mutableSetOf()) { it.recipe }
 }

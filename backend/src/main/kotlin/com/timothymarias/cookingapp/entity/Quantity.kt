@@ -1,6 +1,7 @@
 package com.timothymarias.cookingapp.entity
 
 import jakarta.persistence.*
+import java.time.Instant
 
 @Entity
 @Table(name = "quantities")
@@ -18,7 +19,13 @@ class Quantity(
 
     // For sync engine: store the frontend's local_id
     @Column(name = "local_id", unique = true)
-    var localId: String? = null
+    var localId: String? = null,
+
+    @Column(nullable = false)
+    var version: Int = 1,
+
+    @Column(name = "last_modified", nullable = false)
+    var lastModified: Instant = Instant.now()
 ) {
-    constructor() : this(null, 0.0, Unit(), null)
+    constructor() : this(null, 0.0, Unit(), null, 1, Instant.now())
 }

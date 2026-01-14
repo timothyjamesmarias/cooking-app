@@ -1,6 +1,7 @@
 package com.timothymarias.cookingapp.entity
 
 import jakarta.persistence.*
+import java.time.Instant
 
 @Entity
 @Table(name = "recipes")
@@ -16,15 +17,20 @@ class Recipe(
     @Column(name = "local_id", unique = true)
     var localId: String? = null,
 
+    @Column(nullable = false)
+    var version: Int = 1,
+
+    @Column(name = "last_modified", nullable = false)
+    var lastModified: Instant = Instant.now(),
+
     @OneToMany(mappedBy = "recipe", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf(),
+    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf()
+) {
+    constructor() : this(null, "", null, 1, Instant.now(), mutableSetOf())
 
     // Helper property to maintain backward compatibility
-    @Transient
-    var ingredients: MutableSet<Ingredient> = mutableSetOf()
-        get() = recipeIngredients.map { it.ingredient }.toMutableSet()
-) {
-    constructor() : this(null, "", null, mutableSetOf())
+    val ingredients: MutableSet<Ingredient>
+        get() = recipeIngredients.mapTo(mutableSetOf()) { it.ingredient }
 
     // Helper methods for managing ingredients
     fun addIngredient(ingredient: Ingredient, quantity: Quantity? = null) {
