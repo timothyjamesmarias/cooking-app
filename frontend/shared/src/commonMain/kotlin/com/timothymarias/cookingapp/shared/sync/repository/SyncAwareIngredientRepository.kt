@@ -4,9 +4,9 @@ import com.timothymarias.cookingapp.shared.data.repository.ingredient.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.sync.models.ChecksumGenerator
 import com.timothymarias.cookingapp.shared.sync.models.EntityType
+import com.timothymarias.cookingapp.shared.util.randomUUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import java.util.UUID
 
 /**
  * Sync-aware wrapper for IngredientRepository that tracks changes
@@ -19,7 +19,7 @@ class SyncAwareIngredientRepository(
      * Create a new ingredient with sync tracking
      */
     suspend fun createIngredient(name: String): Ingredient {
-        val localId = UUID.randomUUID().toString()
+        val localId = randomUUID()
         val ingredient = Ingredient(localId = localId, name = name)
 
         // Create the ingredient

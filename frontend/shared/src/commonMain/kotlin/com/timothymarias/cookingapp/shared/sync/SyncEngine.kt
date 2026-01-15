@@ -1,6 +1,8 @@
 package com.timothymarias.cookingapp.shared.sync
 
 import com.timothymarias.cookingapp.shared.sync.models.*
+import com.timothymarias.cookingapp.shared.sync.remote.SyncApiClient
+import com.timothymarias.cookingapp.shared.sync.remote.SyncResult as ApiSyncResult
 import com.timothymarias.cookingapp.shared.sync.repository.SyncRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +14,7 @@ import kotlinx.serialization.json.Json
  */
 class SyncEngine(
     private val syncRepository: SyncRepository,
+    private val syncApiClient: SyncApiClient = SyncApiClient(),
     private val conflictResolver: ConflictResolver = DefaultConflictResolver()
 ) {
     private val json = Json {
@@ -44,27 +47,55 @@ class SyncEngine(
 
             // 2. Mark entities as syncing
             dirtyEntities.forEach { entity ->
-                syncRepository.markSyncing(entity.entityId)
+                syncRepository.markSyncing(entity.localId)
             }
 
             // 3. Prepare sync batch
             val syncBatch = syncRepository.prepareSyncBatch()
 
-            // 4. TODO: Send to server (will be implemented when API is ready)
-            // For now, simulate local processing
-            val syncResponse = simulateLocalSync(syncBatch)
+            // 4. Check connectivity before syncing
+            if (!syncApiClient.isBackendAvailable()) {
+                _syncState.value = SyncState.ERROR
+                return SyncResult(
+                    synced = 0,
+                    conflicts = 0,
+                    errors = listOf("Backend is not available")
+                ).also {
+                    _lastSyncResult.value = it
+                }
+            }
 
-            // 5. Process sync response
+            // 5. Send to server
+            val apiResponse = syncApiClient.performSync(syncBatch)
+
+            // 6. Process the API response
+            val syncResponse = apiResponse.fold(
+                onSuccess = { results ->
+                    convertApiResultsToSyncResponse(results)
+                },
+                onFailure = { error ->
+                    _syncState.value = SyncState.ERROR
+                    return SyncResult(
+                        synced = 0,
+                        conflicts = 0,
+                        errors = listOf(error.message ?: "Sync failed")
+                    ).also {
+                        _lastSyncResult.value = it
+                    }
+                }
+            )
+
+            // 7. Process sync response
             val conflicts = processSyncResponse(syncResponse)
 
-            // 6. Handle conflicts if any
+            // 8. Handle conflicts if any
             val unresolvedConflicts = if (conflicts.isNotEmpty()) {
                 handleConflicts(conflicts)
             } else {
                 0
             }
 
-            // 7. Update sync state
+            // 9. Update sync state
             _syncState.value = if (unresolvedConflicts > 0) {
                 SyncState.HAS_CONFLICTS
             } else {
@@ -286,17 +317,18 @@ class SyncEngine(
     }
 
     /**
-     * Simulate local sync for testing (will be replaced with actual API call)
+     * Convert API sync results to internal sync response format
      */
-    private suspend fun simulateLocalSync(batch: List<SyncEntity>): SyncResponse {
-        // For now, accept all changes
+    private fun convertApiResultsToSyncResponse(results: List<ApiSyncResult>): SyncResponse {
         return SyncResponse(
-            results = batch.map { entity ->
+            results = results.map { result ->
                 SyncResultItem(
-                    localId = entity.localId,
-                    serverId = entity.serverId ?: System.currentTimeMillis(),
-                    accepted = true,
-                    hasConflict = false
+                    localId = result.localId,
+                    serverId = result.serverId,
+                    accepted = result.accepted,
+                    hasConflict = result.hasConflict,
+                    remoteData = result.conflictInfo?.remoteData?.toString(),
+                    remoteTimestamp = result.conflictInfo?.remoteTimestamp
                 )
             }
         )
@@ -321,6 +353,22 @@ class SyncEngine(
      */
     suspend fun getSyncStatusCounts(): Map<SyncStatus, Int> {
         return syncRepository.countByStatus()
+    }
+
+    /**
+     * Check if backend is available for sync
+     */
+    suspend fun checkConnectivity(): Boolean {
+        return syncApiClient.isSyncServiceAvailable()
+    }
+
+    /**
+     * Force a sync even if no dirty entities exist
+     */
+    suspend fun forceSyncAll() {
+        // Mark all entities as dirty to force a full sync
+        syncRepository.markAllDirty()
+        performSync()
     }
 }
 

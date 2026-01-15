@@ -48,6 +48,13 @@ SET sync_status = 'DIRTY',
     local_version = local_version + 1
 WHERE entity_id = ?;
 
+-- Mark all entities as dirty for full sync
+markAllEntitiesDirty:
+UPDATE sync_info
+SET sync_status = 'DIRTY',
+    last_modified = ?,
+    local_version = local_version + 1;
+
 -- Mark entity as having a conflict
 markConflicted:
 UPDATE sync_info

@@ -1,5 +1,6 @@
 package com.timothymarias.cookingapp.shared.sync.models
 
+import com.timothymarias.cookingapp.shared.util.currentTimeMillis
 import kotlinx.serialization.Serializable
 
 /**
@@ -64,15 +65,21 @@ enum class SyncStatus {
  * Sync information for an entity
  */
 data class EntitySyncInfo(
-    val entityId: String,
+    val localId: String,  // Renamed from entityId for consistency
     val entityType: EntityType,
     val serverId: Long? = null,
-    val localVersion: Int = 1,
+    val data: Map<String, kotlinx.serialization.json.JsonElement>,  // Entity data to sync
+    val version: Int = 1,
     val lastModified: Long,  // Unix timestamp
     val checksum: String,
     val syncStatus: SyncStatus = SyncStatus.DIRTY,
     val isPinned: Boolean = false  // If user explicitly chose this version
 )
+
+// Legacy alias for backward compatibility
+@Deprecated("Use localId instead", ReplaceWith("localId"))
+val EntitySyncInfo.entityId: String
+    get() = localId
 
 /**
  * A sync conflict that needs resolution
@@ -86,7 +93,7 @@ data class SyncConflict(
     val remoteData: String, // JSON representation
     val localTimestamp: Long,
     val remoteTimestamp: Long,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = currentTimeMillis()
 )
 
 /**
@@ -96,7 +103,7 @@ data class SyncResult(
     val synced: Int,
     val conflicts: Int,
     val errors: List<String> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = currentTimeMillis()
 )
 
 /**

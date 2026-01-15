@@ -6,7 +6,7 @@ import com.timothymarias.cookingapp.shared.domain.model.Unit
 import com.timothymarias.cookingapp.shared.sync.models.ChecksumGenerator
 import com.timothymarias.cookingapp.shared.sync.models.EntityType
 import kotlinx.coroutines.flow.Flow
-import java.util.UUID
+import com.timothymarias.cookingapp.shared.util.randomUUID
 
 /**
  * Sync-aware wrapper for UnitRepository that tracks changes
@@ -24,7 +24,7 @@ class SyncAwareUnitRepository(
         measurementType: MeasurementType,
         baseConversionFactor: Double = 1.0
     ): Unit {
-        val localId = UUID.randomUUID().toString()
+        val localId = randomUUID()
         val unit = Unit(
             localId = localId,
             name = name,

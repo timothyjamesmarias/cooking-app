@@ -2,6 +2,7 @@ package com.timothymarias.cookingapp.shared.sync.repository
 
 import com.timothymarias.cookingapp.shared.db.CookingDatabase
 import com.timothymarias.cookingapp.shared.sync.models.*
+import com.timothymarias.cookingapp.shared.util.currentTimeMillis
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
@@ -31,7 +32,7 @@ class SyncRepository(
         database.sync_infoQueries.initializeSyncInfo(
             entity_id = entityId,
             entity_type = entityType.toStorageString(),
-            last_modified = System.currentTimeMillis(),
+            last_modified = currentTimeMillis(),
             checksum = checksum
         )
     }
@@ -41,10 +42,10 @@ class SyncRepository(
      */
     suspend fun upsertSyncInfo(syncInfo: EntitySyncInfo) {
         database.sync_infoQueries.upsertSyncInfo(
-            entity_id = syncInfo.entityId,
+            entity_id = syncInfo.localId,
             entity_type = syncInfo.entityType.toStorageString(),
             server_id = syncInfo.serverId,
-            local_version = syncInfo.localVersion.toLong(),
+            local_version = syncInfo.version.toLong(),
             last_modified = syncInfo.lastModified,
             checksum = syncInfo.checksum,
             sync_status = syncInfo.syncStatus.toStorageString(),
@@ -95,13 +96,24 @@ class SyncRepository(
     suspend fun markDirty(
         entityId: String,
         checksum: String,
-        timestamp: Long = System.currentTimeMillis()
+        timestamp: Long = currentTimeMillis()
     ) {
         database.sync_infoQueries.markDirty(
             last_modified = timestamp,
             checksum = checksum,
             entity_id = entityId
         )
+    }
+
+    /**
+     * Mark all entities as dirty to force a full sync
+     */
+    suspend fun markAllDirty() {
+        database.sync_infoQueries.transaction {
+            database.sync_infoQueries.markAllEntitiesDirty(
+                last_modified = currentTimeMillis()
+            )
+        }
     }
 
     /**
@@ -246,27 +258,26 @@ class SyncRepository(
     /**
      * Prepare entities for sync
      */
-    suspend fun prepareSyncBatch(): List<SyncEntity> {
+    suspend fun prepareSyncBatch(): List<EntitySyncInfo> {
         val dirtyEntities = getDirtyEntities()
         return dirtyEntities.map { syncInfo ->
             // Get the actual entity data based on type
             val entityData = when (syncInfo.entityType) {
-                EntityType.RECIPE -> getRecipeData(syncInfo.entityId)
-                EntityType.INGREDIENT -> getIngredientData(syncInfo.entityId)
-                EntityType.UNIT -> getUnitData(syncInfo.entityId)
-                EntityType.QUANTITY -> getQuantityData(syncInfo.entityId)
-                EntityType.RECIPE_INGREDIENT -> getRecipeIngredientData(syncInfo.entityId)
+                EntityType.RECIPE -> getRecipeData(syncInfo.localId)
+                EntityType.INGREDIENT -> getIngredientData(syncInfo.localId)
+                EntityType.UNIT -> getUnitData(syncInfo.localId)
+                EntityType.QUANTITY -> getQuantityData(syncInfo.localId)
+                EntityType.RECIPE_INGREDIENT -> getRecipeIngredientData(syncInfo.localId)
             }
 
-            SyncEntity(
-                localId = syncInfo.entityId,
-                serverId = syncInfo.serverId,
-                type = syncInfo.entityType.toStorageString(),
-                data = entityData,
-                version = syncInfo.localVersion,
-                timestamp = syncInfo.lastModified,
-                checksum = syncInfo.checksum
-            )
+            // Parse entity data to Map for EntitySyncInfo
+            val dataMap = try {
+                json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(entityData)
+            } catch (e: Exception) {
+                emptyMap()
+            }
+
+            syncInfo.copy(data = dataMap)
         }
     }
 
@@ -338,10 +349,11 @@ private fun com.timothymarias.cookingapp.shared.db.migrations.Sync_info.toEntity
     val syncStatus = sync_status.toSyncStatus() ?: return null
 
     return EntitySyncInfo(
-        entityId = entity_id,
+        localId = entity_id,
         entityType = entityType,
         serverId = server_id,
-        localVersion = local_version.toInt(),
+        data = emptyMap(), // Data is loaded separately when needed
+        version = local_version.toInt(),
         lastModified = last_modified,
         checksum = checksum,
         syncStatus = syncStatus,

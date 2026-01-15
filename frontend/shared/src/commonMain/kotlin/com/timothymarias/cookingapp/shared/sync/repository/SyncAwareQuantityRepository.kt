@@ -5,7 +5,7 @@ import com.timothymarias.cookingapp.shared.domain.model.Quantity
 import com.timothymarias.cookingapp.shared.sync.models.ChecksumGenerator
 import com.timothymarias.cookingapp.shared.sync.models.EntityType
 import kotlinx.coroutines.flow.Flow
-import java.util.UUID
+import com.timothymarias.cookingapp.shared.util.randomUUID
 
 /**
  * Sync-aware wrapper for QuantityRepository that tracks changes
@@ -18,7 +18,7 @@ class SyncAwareQuantityRepository(
      * Create a new quantity with sync tracking
      */
     suspend fun createQuantity(amount: Double, unitId: String): Quantity {
-        val localId = UUID.randomUUID().toString()
+        val localId = randomUUID()
         val quantity = Quantity(
             localId = localId,
             amount = amount,
