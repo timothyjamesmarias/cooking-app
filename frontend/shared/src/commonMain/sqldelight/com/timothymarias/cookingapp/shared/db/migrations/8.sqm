@@ -1,0 +1,33 @@
+-- Migration 8: Add sync tracking tables
+
+-- Sync info table for tracking entity sync state
+CREATE TABLE sync_info (
+    entity_id TEXT PRIMARY KEY,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('RECIPE', 'INGREDIENT', 'UNIT', 'QUANTITY', 'RECIPE_INGREDIENT')),
+    server_id INTEGER,
+    local_version INTEGER NOT NULL DEFAULT 1,
+    last_modified INTEGER NOT NULL,
+    checksum TEXT NOT NULL,
+    sync_status TEXT NOT NULL CHECK (sync_status IN ('CLEAN', 'DIRTY', 'SYNCING', 'CONFLICT', 'ERROR')),
+    is_pinned INTEGER NOT NULL DEFAULT 0
+);
+
+-- Indexes for efficient querying
+CREATE INDEX idx_sync_info_status ON sync_info(sync_status);
+CREATE INDEX idx_sync_info_type ON sync_info(entity_type);
+CREATE INDEX idx_sync_info_server_id ON sync_info(server_id);
+
+-- Sync conflicts table for storing unresolved conflicts
+CREATE TABLE sync_conflicts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_id TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    local_data TEXT NOT NULL,  -- JSON representation of local version
+    remote_data TEXT NOT NULL, -- JSON representation of remote version
+    local_timestamp INTEGER NOT NULL,
+    remote_timestamp INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+-- Index for conflict lookups
+CREATE INDEX idx_sync_conflicts_entity ON sync_conflicts(entity_id);

@@ -1,13 +1,8 @@
 package com.timothymarias.cookingapp.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import java.time.Instant
 
 @Entity
 @Table(name = "ingredients")
@@ -19,9 +14,23 @@ class Ingredient(
     @Column(nullable = false)
     var name: String,
 
-    @ManyToMany(mappedBy = "ingredients")
-    @JsonIgnoreProperties("ingredients")
-    var recipes: MutableSet<Recipe> = mutableSetOf()
+    // For sync engine: store the frontend's local_id
+    @Column(name = "local_id", unique = true)
+    var localId: String? = null,
+
+    @Column(nullable = false)
+    var version: Int = 1,
+
+    @Column(name = "last_modified", nullable = false)
+    var lastModified: Instant = Instant.now(),
+
+    @OneToMany(mappedBy = "ingredient")
+    @JsonIgnoreProperties("ingredient")
+    var recipeIngredients: MutableSet<RecipeIngredient> = mutableSetOf()
 ) {
-    constructor() : this(null, "", mutableSetOf())
+    constructor() : this(null, "", null, 1, Instant.now(), mutableSetOf())
+
+    // Helper property to maintain backward compatibility
+    val recipes: MutableSet<Recipe>
+        get() = recipeIngredients.mapTo(mutableSetOf()) { it.recipe }
 }

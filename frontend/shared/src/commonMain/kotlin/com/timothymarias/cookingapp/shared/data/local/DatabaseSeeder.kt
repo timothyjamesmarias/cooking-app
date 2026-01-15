@@ -8,7 +8,7 @@ import com.timothymarias.cookingapp.shared.domain.model.Ingredient
 import com.timothymarias.cookingapp.shared.domain.model.MeasurementType
 import com.timothymarias.cookingapp.shared.domain.model.Recipe
 import com.timothymarias.cookingapp.shared.domain.model.Unit
-import kotlinx.datetime.Clock
+import com.timothymarias.cookingapp.shared.util.currentTimeMillis
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
@@ -88,7 +88,7 @@ object DatabaseSeeder {
         database.seed_versionsQueries.recordSeed(
             seed_name = "units",
             version = UNITS_SEED_VERSION.toLong(),
-            executed_at = Clock.System.now().toEpochMilliseconds()
+            executed_at = currentTimeMillis()
         )
 
         return true
@@ -117,7 +117,7 @@ object DatabaseSeeder {
         database.seed_versionsQueries.recordSeed(
             seed_name = "test_ingredients",
             version = INGREDIENTS_SEED_VERSION.toLong(),
-            executed_at = Clock.System.now().toEpochMilliseconds()
+            executed_at = currentTimeMillis()
         )
 
         return true
@@ -160,7 +160,7 @@ object DatabaseSeeder {
         database.seed_versionsQueries.recordSeed(
             seed_name = "test_recipes",
             version = RECIPES_SEED_VERSION.toLong(),
-            executed_at = Clock.System.now().toEpochMilliseconds()
+            executed_at = currentTimeMillis()
         )
 
         return true
